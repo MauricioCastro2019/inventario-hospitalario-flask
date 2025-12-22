@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Agregar Producto</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-4">
+    <h1>Agregar Producto</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        <div class="mb-2">
+            <label>Nombre:</label>
+            <input type="text" name="nombre" class="form-control" required>
+        </div>
+
+        <div class="mb-2">
+            <label>Código:</label>
+            <input type="text" name="codigo" class="form-control" required>
+        </div>
+
+        <div class="mb-2">
+            <label>Descripción:</label>
+            <textarea name="descripcion" class="form-control"></textarea>
+        </div>
+
+        <div class="mb-2">
+            <label>Proveedor:</label>
+            <input type="text" name="proveedor" class="form-control">
+        </div>
+
+        <div class="mb-2">
+            <label>Lote:</label>
+            <input type="text" name="lote" class="form-control">
+        </div>
+
+        <div class="mb-2">
+            <label>Categoría:</label>
+            <input type="text" name="categoria" class="form-control">
+        </div>
+
+        <div class="mb-2">
+            <label>Unidad:</label>
+            <input type="text" name="unidad" class="form-control" required>
+        </div>
+
+        <div class="row g-2">
+            <div class="col-md-6">
+                <div class="mb-2">
+                    <label>Cantidad:</label>
+                    <input type="number" name="cantidad" class="form-control" min="0" required>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="mb-2">
+                    <label>Stock mínimo:</label>
+                    <input type="number" name="stock_minimo" class="form-control" min="0" value="0" required>
+                    <div class="form-text">Alerta cuando Cantidad sea igual o menor a este número.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-2">
+            <label>Costo:</label>
+            <input type="number" name="costo" id="costo" class="form-control" step="0.01"
+                   oninput="calcularPrecio()" required>
+        </div>
+
+        <div class="mb-2">
+            <label>Precio sugerido (35%):</label>
+            <input type="number" name="precio" id="precio" class="form-control" step="0.01" readonly>
+        </div>
+
+        <div class="mb-2">
+            <label>Fecha de ingreso:</label>
+            <input type="date" name="fecha_ingreso" class="form-control">
+        </div>
+
+        <div class="mb-2">
+            <label>Fecha de caducidad:</label>
+            <input type="date" name="fecha_caducidad" class="form-control">
+        </div>
+
+        <div class="mb-2">
+            <label>Imagen:</label>
+            <input type="file" name="imagen" class="form-control">
+        </div>
+
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+
+    <script>
+        function calcularPrecio() {
+          const costo = parseFloat(document.getElementById("costo").value);
+          if (!isNaN(costo)) {
+            const precio = costo * 1.35;
+            document.getElementById("precio").value = precio.toFixed(2);
+          } else {
+            document.getElementById("precio").value = "";
+          }
+        }
+    </script>
+</body>
+</html>

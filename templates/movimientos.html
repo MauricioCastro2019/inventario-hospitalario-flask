@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Movimientos</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="m-0">Movimientos</h2>
+    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Volver al inventario</a>
+  </div>
+
+  {% if producto %}
+    <div class="alert alert-light border">
+      <div class="row">
+        <div class="col-md-8">
+          <div><strong>Producto:</strong> {{ producto.nombre }}</div>
+          <div><strong>Código:</strong> {{ producto.codigo }}</div>
+          <div><strong>Categoría:</strong> {{ producto.categoria or '-' }}</div>
+        </div>
+        <div class="col-md-4 text-md-end">
+          <div><strong>Stock actual:</strong> {{ producto.cantidad }}</div>
+          <a class="btn btn-success mt-2"
+             href="{{ url_for('nuevo_movimiento', producto_id=producto.id) }}">
+            + Nuevo movimiento
+          </a>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="alert alert-info">
+      Mostrando los <strong>últimos movimientos</strong> (vista general).
+      Para ver un producto en específico, entra desde el inventario usando el botón “Movimientos”.
+    </div>
+  {% endif %}
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th style="white-space:nowrap;">Fecha</th>
+          <th>Producto</th>
+          <th style="white-space:nowrap;">Tipo</th>
+          <th style="white-space:nowrap;">Cantidad</th>
+          <th>Nota</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% if movimientos and movimientos|length > 0 %}
+          {% for m in movimientos %}
+            <tr>
+              <td style="white-space:nowrap;">
+                {{ m.fecha.strftime('%Y-%m-%d %H:%M') }}
+              </td>
+
+              <td>
+                {% if m.producto %}
+                  <div><strong>{{ m.producto.nombre }}</strong></div>
+                  <div class="text-muted small">{{ m.producto.codigo }}</div>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <td style="white-space:nowrap;">
+                {% if m.tipo == 'entrada' %}
+                  <span class="badge bg-success">Entrada</span>
+                {% elif m.tipo == 'salida' %}
+                  <span class="badge bg-danger">Salida</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ m.tipo }}</span>
+                {% endif %}
+              </td>
+
+              <td style="white-space:nowrap;">
+                {{ m.cantidad }}
+              </td>
+
+              <td>
+                {{ m.nota or '' }}
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="5" class="text-center text-muted">
+              Aún no hay movimientos registrados.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+</body>
+</html>

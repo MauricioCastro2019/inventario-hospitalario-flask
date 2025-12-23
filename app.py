@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from werkzeug.utils import secure_filename
 import os
-import sys
 
 # ---------------------------
 # APP
@@ -15,16 +14,28 @@ app = Flask(__name__)
 # DATABASE CONFIG (Railway / Local)
 # ---------------------------
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+def get_database_uri() -> str:
+    """
+    Railway normalmente expone DATABASE_URL (postgres://...)
+    SQLAlchemy necesita postgresql://...
+    Si no hay env, usamos SQLite local.
+    """
+    db_url = os.getenv("DATABASE_URL")
 
-if DATABASE_URL:
-    # Railway usa postgres:// pero SQLAlchemy necesita postgresql://
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")
-    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
-else:
-    # Local fallback
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
+    # Si Railway está mal configurado y nos llega vacío o raro, caemos a SQLite.
+    if not db_url or db_url.strip() == "":
+        return "sqlite:///db.sqlite3"
 
+    db_url = db_url.strip()
+
+    # Normalización segura: solo si empieza con postgres:// y solo 1 vez
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+    return db_url
+
+
+app.config["SQLALCHEMY_DATABASE_URI"] = get_database_uri()
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["UPLOAD_FOLDER"] = "static/uploads"
 
@@ -70,11 +81,24 @@ class Movimiento(db.Model):
 
 
 # ---------------------------
-# AUTO CREATE TABLES (Railway Safe)
+# AUTO CREATE TABLES (SAFE)
 # ---------------------------
 
-with app.app_context():
-    db.create_all()
+def ensure_tables():
+    """
+    Crea tablas si no existen.
+    En Railway esto evita: "no such table: producto"
+    Si la DB todavía no está lista por un instante, no tumba el deploy.
+    """
+    try:
+        with app.app_context():
+            db.create_all()
+    except Exception as e:
+        # Log simple para Railway. No detenemos el arranque por esto.
+        print("⚠️ ensure_tables() error:", repr(e))
+
+
+ensure_tables()
 
 # ---------------------------
 # RUTAS
@@ -90,7 +114,9 @@ def index():
             (Producto.categoria.ilike(f"%{q}%"))
         ).all()
     else:
-        productos = Producto.query.order_by(Producto.ingreso.desc()).all()
+        # Si ingreso es NULL en algunos registros, esto puede fallar dependiendo DB.
+        # Por seguridad, ordenamos por última modificación:
+        productos = Producto.query.order_by(Producto.ultima_modificacion.desc()).all()
 
     return render_template("index.html", productos=productos)
 
@@ -106,10 +132,10 @@ def agregar():
             lote=request.form.get("lote", ""),
             categoria=request.form.get("categoria", ""),
             unidad=request.form["unidad"],
-            cantidad=int(request.form["cantidad"]),
-            stock_minimo=int(request.form.get("stock_minimo", 0)),
-            costo=float(request.form["costo"]),
-            precio=float(request.form["precio"]),
+            cantidad=int(request.form["cantidad"]) if request.form.get("cantidad") else 0,
+            stock_minimo=int(request.form.get("stock_minimo", 0) or 0),
+            costo=float(request.form["costo"]) if request.form.get("costo") else 0.0,
+            precio=float(request.form["precio"]) if request.form.get("precio") else 0.0,
             ingreso=datetime.strptime(
                 request.form["fecha_ingreso"], "%Y-%m-%d"
             ).date() if request.form.get("fecha_ingreso") else None,
@@ -145,10 +171,10 @@ def editar(id):
         producto.lote = request.form.get("lote", "")
         producto.categoria = request.form.get("categoria", "")
         producto.unidad = request.form["unidad"]
-        producto.cantidad = int(request.form["cantidad"])
-        producto.stock_minimo = int(request.form.get("stock_minimo", 0))
-        producto.costo = float(request.form["costo"])
-        producto.precio = float(request.form["precio"])
+        producto.cantidad = int(request.form["cantidad"]) if request.form.get("cantidad") else 0
+        producto.stock_minimo = int(request.form.get("stock_minimo", 0) or 0)
+        producto.costo = float(request.form["costo"]) if request.form.get("costo") else 0.0
+        producto.precio = float(request.form["precio"]) if request.form.get("precio") else 0.0
         producto.ingreso = datetime.strptime(
             request.form["fecha_ingreso"], "%Y-%m-%d"
         ).date() if request.form.get("fecha_ingreso") else None
@@ -190,20 +216,35 @@ def nuevo_movimiento(producto_id):
     producto = Producto.query.get_or_404(producto_id)
 
     if request.method == "POST":
-        tipo = request.form["tipo"]
-        cantidad = int(request.form["cantidad"])
-        nota = request.form.get("nota") or None
+        tipo = request.form.get("tipo")  # entrada / salida
+        cantidad = int(request.form.get("cantidad", 0) or 0)
+        nota = (request.form.get("nota") or "").strip() or None
 
+        if tipo not in ("entrada", "salida"):
+            return "Tipo inválido", 400
+        if cantidad <= 0:
+            return "Cantidad inválida", 400
+
+        # Normaliza cantidad si viene None
+        if producto.cantidad is None:
+            producto.cantidad = 0
+
+        # Validación de stock
         if tipo == "salida" and producto.cantidad < cantidad:
-            return "Stock insuficiente", 400
+            return f"Stock insuficiente. Stock actual: {producto.cantidad}", 400
 
-        producto.cantidad += cantidad if tipo == "entrada" else -cantidad
+        # Ajuste stock
+        if tipo == "entrada":
+            producto.cantidad += cantidad
+        else:
+            producto.cantidad -= cantidad
 
         mov = Movimiento(
             producto_id=producto.id,
             tipo=tipo,
             cantidad=cantidad,
-            nota=nota
+            nota=nota,
+            fecha=datetime.utcnow()
         )
 
         producto.ultima_modificacion = datetime.utcnow()
@@ -216,8 +257,10 @@ def nuevo_movimiento(producto_id):
 
 
 # ---------------------------
-# ENTRYPOINT
+# ENTRYPOINT (Local only)
+# Railway usa gunicorn con wsgi.py
 # ---------------------------
 
 if __name__ == "__main__":
-    app.run()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)

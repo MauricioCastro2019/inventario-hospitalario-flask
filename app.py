@@ -8,16 +8,33 @@ import sys
 import shutil
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
+# -------------------------------------------------
+# CONFIG: SQLite local / Postgres en Railway
+# -------------------------------------------------
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["UPLOAD_FOLDER"] = "static/uploads"
+
+# Secret key (sirve para sesiones/seguridad)
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key-change-me")
+
+db_url = os.environ.get("DATABASE_URL")
+
+if db_url:
+    # Railway / Postgres
+    # Algunas plataformas entregan "postgres://", SQLAlchemy espera "postgresql://"
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+else:
+    # Local / SQLite
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-# ---------------------------
+# -------------------------------------------------
 # MODELOS
-# ---------------------------
+# -------------------------------------------------
 
 class Producto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -37,10 +54,9 @@ class Producto(db.Model):
     imagen = db.Column(db.String(200))
     ultima_modificacion = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relación: un producto tiene muchos movimientos
     movimientos = db.relationship(
-        'Movimiento',
-        backref='producto',
+        "Movimiento",
+        backref="producto",
         lazy=True,
         cascade="all, delete-orphan"
     )
@@ -48,29 +64,27 @@ class Producto(db.Model):
 
 class Movimiento(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    producto_id = db.Column(db.Integer, db.ForeignKey("producto.id"), nullable=False)
 
-    producto_id = db.Column(db.Integer, db.ForeignKey('producto.id'), nullable=False)
-
-    # 'entrada' o 'salida'
-    tipo = db.Column(db.String(10), nullable=False)
-
-    # cantidad movida (siempre positiva)
-    cantidad = db.Column(db.Integer, nullable=False)
-
-    # fecha del movimiento
+    tipo = db.Column(db.String(10), nullable=False)  # 'entrada' o 'salida'
+    cantidad = db.Column(db.Integer, nullable=False)  # siempre positiva
     fecha = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-
-    # nota opcional
     nota = db.Column(db.String(255), nullable=True)
 
 
-# ---------------------------
-# BACKDOOR LOCAL: NUKE TOTAL
-# ---------------------------
+# -------------------------------------------------
+# AUTO-CREATE TABLES (evita "no such table")
+# -------------------------------------------------
+with app.app_context():
+    db.create_all()
 
+
+# -------------------------------------------------
+# BACKDOOR LOCAL: NUKE TOTAL (solo SQLite)
+# -------------------------------------------------
 def nuke_everything():
     """
-    BORRADO TOTAL (LOCAL):
+    BORRADO TOTAL (SOLO LOCAL SQLITE):
     - Elimina db.sqlite3
     - Elimina instance/
     - Elimina migrations/
@@ -94,7 +108,7 @@ def nuke_everything():
         except Exception:
             pass
 
-    # Borra el archivo DB
+    # Borra el archivo DB (solo si existe)
     if os.path.exists(db_path):
         os.remove(db_path)
 
@@ -111,13 +125,13 @@ def nuke_everything():
         db.create_all()
 
 
-# ---------------------------
+# -------------------------------------------------
 # RUTAS
-# ---------------------------
+# -------------------------------------------------
 
-@app.route('/')
+@app.route("/")
 def index():
-    q = request.args.get('q')
+    q = request.args.get("q")
     if q:
         productos = Producto.query.filter(
             (Producto.nombre.ilike(f"%{q}%")) |
@@ -126,116 +140,115 @@ def index():
         ).all()
     else:
         productos = Producto.query.order_by(Producto.ingreso.desc()).all()
-    return render_template('index.html', productos=productos)
+    return render_template("index.html", productos=productos)
 
 
-@app.route('/agregar', methods=['GET', 'POST'])
+@app.route("/agregar", methods=["GET", "POST"])
 def agregar():
-    if request.method == 'POST':
+    if request.method == "POST":
         producto = Producto(
-            nombre=request.form['nombre'],
-            codigo=request.form['codigo'],
-            descripcion=request.form.get('descripcion', ''),
-            proveedor=request.form.get('proveedor', ''),
-            lote=request.form.get('lote', ''),
-            categoria=request.form.get('categoria', ''),
-            unidad=request.form['unidad'],
-            cantidad=int(request.form['cantidad']),
-            stock_minimo=int(request.form.get('stock_minimo', 0)),
-            costo=float(request.form['costo']),
-            precio=float(request.form['precio']),
-            ingreso=datetime.strptime(request.form['fecha_ingreso'], '%Y-%m-%d').date() if request.form.get('fecha_ingreso') else None,
-            caducidad=datetime.strptime(request.form['fecha_caducidad'], '%Y-%m-%d').date() if request.form.get('fecha_caducidad') else None,
+            nombre=request.form["nombre"],
+            codigo=request.form["codigo"],
+            descripcion=request.form.get("descripcion", ""),
+            proveedor=request.form.get("proveedor", ""),
+            lote=request.form.get("lote", ""),
+            categoria=request.form.get("categoria", ""),
+            unidad=request.form["unidad"],
+            cantidad=int(request.form["cantidad"]),
+            stock_minimo=int(request.form.get("stock_minimo", 0)),
+            costo=float(request.form["costo"]),
+            precio=float(request.form["precio"]),
+            ingreso=datetime.strptime(request.form["fecha_ingreso"], "%Y-%m-%d").date() if request.form.get("fecha_ingreso") else None,
+            caducidad=datetime.strptime(request.form["fecha_caducidad"], "%Y-%m-%d").date() if request.form.get("fecha_caducidad") else None,
             ultima_modificacion=datetime.utcnow()
         )
 
-        imagen = request.files.get('imagen')
+        imagen = request.files.get("imagen")
         if imagen and imagen.filename:
-            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+            os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
             filename = secure_filename(imagen.filename)
-            ruta = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            ruta = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             imagen.save(ruta)
             producto.imagen = filename
 
         db.session.add(producto)
         db.session.commit()
-        return redirect(url_for('index'))
+        return redirect(url_for("index"))
 
-    return render_template('agregar.html')
+    return render_template("agregar.html")
 
 
-@app.route('/editar/<int:id>', methods=['GET', 'POST'])
+@app.route("/editar/<int:id>", methods=["GET", "POST"])
 def editar(id):
     producto = Producto.query.get_or_404(id)
 
-    if request.method == 'POST':
-        producto.nombre = request.form['nombre']
-        producto.codigo = request.form['codigo']
-        producto.descripcion = request.form.get('descripcion', '')
-        producto.proveedor = request.form.get('proveedor', '')
-        producto.lote = request.form.get('lote', '')
-        producto.categoria = request.form.get('categoria', '')
-        producto.unidad = request.form['unidad']
-        producto.cantidad = int(request.form['cantidad'])
-        producto.stock_minimo = int(request.form.get('stock_minimo', 0))
-        producto.costo = float(request.form['costo'])
-        producto.precio = float(request.form['precio'])
-        producto.ingreso = datetime.strptime(request.form['fecha_ingreso'], '%Y-%m-%d').date() if request.form.get('fecha_ingreso') else None
-        producto.caducidad = datetime.strptime(request.form['fecha_caducidad'], '%Y-%m-%d').date() if request.form.get('fecha_caducidad') else None
+    if request.method == "POST":
+        producto.nombre = request.form["nombre"]
+        producto.codigo = request.form["codigo"]
+        producto.descripcion = request.form.get("descripcion", "")
+        producto.proveedor = request.form.get("proveedor", "")
+        producto.lote = request.form.get("lote", "")
+        producto.categoria = request.form.get("categoria", "")
+        producto.unidad = request.form["unidad"]
+        producto.cantidad = int(request.form["cantidad"])
+        producto.stock_minimo = int(request.form.get("stock_minimo", 0))
+        producto.costo = float(request.form["costo"])
+        producto.precio = float(request.form["precio"])
+        producto.ingreso = datetime.strptime(request.form["fecha_ingreso"], "%Y-%m-%d").date() if request.form.get("fecha_ingreso") else None
+        producto.caducidad = datetime.strptime(request.form["fecha_caducidad"], "%Y-%m-%d").date() if request.form.get("fecha_caducidad") else None
         producto.ultima_modificacion = datetime.utcnow()
 
-        imagen = request.files.get('imagen')
+        imagen = request.files.get("imagen")
         if imagen and imagen.filename:
-            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+            os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
             filename = secure_filename(imagen.filename)
-            ruta = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            ruta = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             imagen.save(ruta)
             producto.imagen = filename
 
         db.session.commit()
-        return redirect(url_for('index'))
+        return redirect(url_for("index"))
 
-    return render_template('editar.html', producto=producto)
+    return render_template("editar.html", producto=producto)
 
 
 # -------- MOVIMIENTOS --------
 
-@app.route('/movimientos')
+@app.route("/movimientos")
 def movimientos():
-    producto_id = request.args.get('producto_id', type=int)
+    producto_id = request.args.get("producto_id", type=int)
 
     if producto_id:
         producto = Producto.query.get_or_404(producto_id)
         movs = Movimiento.query.filter_by(producto_id=producto_id).order_by(Movimiento.fecha.desc()).all()
-        return render_template('movimientos.html', producto=producto, movimientos=movs)
+        return render_template("movimientos.html", producto=producto, movimientos=movs)
 
     movs = Movimiento.query.order_by(Movimiento.fecha.desc()).limit(200).all()
-    return render_template('movimientos.html', producto=None, movimientos=movs)
+    return render_template("movimientos.html", producto=None, movimientos=movs)
 
 
-@app.route('/movimiento/nuevo/<int:producto_id>', methods=['GET', 'POST'])
+@app.route("/movimiento/nuevo/<int:producto_id>", methods=["GET", "POST"])
 def nuevo_movimiento(producto_id):
     producto = Producto.query.get_or_404(producto_id)
 
-    if request.method == 'POST':
-        tipo = request.form.get('tipo')  # 'entrada' o 'salida'
-        cantidad = int(request.form.get('cantidad', 0))
-        nota = request.form.get('nota', '').strip() or None
+    if request.method == "POST":
+        tipo = request.form.get("tipo")  # 'entrada' o 'salida'
+        cantidad = int(request.form.get("cantidad", 0))
+        nota = request.form.get("nota", "").strip() or None
 
-        if tipo not in ('entrada', 'salida'):
+        if tipo not in ("entrada", "salida"):
             return "Tipo inválido", 400
         if cantidad <= 0:
             return "Cantidad inválida", 400
 
-        if tipo == 'salida' and (producto.cantidad is None or producto.cantidad < cantidad):
+        if tipo == "salida" and (producto.cantidad is None or producto.cantidad < cantidad):
             stock = producto.cantidad if producto.cantidad is not None else 0
             return f"No hay stock suficiente. Stock actual: {stock}", 400
 
-        # Ajuste stock
         if producto.cantidad is None:
             producto.cantidad = 0
 
-        if tipo == 'entrada':
+        if tipo == "entrada":
             producto.cantidad += cantidad
         else:
             producto.cantidad -= cantidad
@@ -252,20 +265,25 @@ def nuevo_movimiento(producto_id):
         db.session.add(mov)
         db.session.commit()
 
-        return redirect(url_for('movimientos', producto_id=producto.id))
+        return redirect(url_for("movimientos", producto_id=producto.id))
 
-    return render_template('nuevo_movimiento.html', producto=producto)
+    return render_template("nuevo_movimiento.html", producto=producto)
 
 
-if __name__ == '__main__':
-    # Comando local:
-    #   python app.py nuke   -> BORRADO TOTAL (db + migrations + uploads + instance)
-    #   python app.py        -> corre normal
+# -------------------------------------------------
+# MAIN
+# -------------------------------------------------
+if __name__ == "__main__":
+    # Backdoor: SOLO LOCAL (SQLite). Evita nuke en Railway por accidente.
     if len(sys.argv) > 1 and sys.argv[1].lower().strip() == "nuke":
-        print("\n🚨🚨🚨 BORRADO TOTAL ACTIVADO 🚨🚨🚨")
+        if os.environ.get("DATABASE_URL"):
+            print("\n❌ 'nuke' está deshabilitado en producción (DATABASE_URL detectado).\n")
+            sys.exit(1)
+
+        print("\n🚨🚨🚨 BORRADO TOTAL ACTIVADO (LOCAL) 🚨🚨🚨")
         print("Esto eliminará: db.sqlite3, migrations/, instance/, static/uploads/ y cachés.\n")
 
-        confirm = input('Escribe exactamente: BORRAR TODO PARA SIEMPRE  -> ')
+        confirm = input("Escribe exactamente: BORRAR TODO PARA SIEMPRE  -> ")
         if confirm.strip() != "BORRAR TODO PARA SIEMPRE":
             print("❌ Cancelado. No se borró nada.\n")
             sys.exit(0)
@@ -274,4 +292,6 @@ if __name__ == '__main__':
         print("✅ Listo: reset total completado. Base vacía y uploads recreado.\n")
         sys.exit(0)
 
-    app.run(debug=True)
+    # Puerto para Railway / local
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)

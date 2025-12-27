@@ -5,6 +5,7 @@
   <title>Movimientos</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
+
 <body class="container mt-4">
 
   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -13,15 +14,32 @@
   </div>
 
   {% if producto %}
+    {% set stock_pzas = (producto.cantidad_piezas if producto.cantidad_piezas is not none else (producto.cantidad or 0)) %}
+
     <div class="alert alert-light border">
       <div class="row">
         <div class="col-md-8">
           <div><strong>Producto:</strong> {{ producto.nombre }}</div>
           <div><strong>Código:</strong> {{ producto.codigo }}</div>
           <div><strong>Categoría:</strong> {{ producto.categoria or '-' }}</div>
+          <div><strong>Unidad:</strong> {{ producto.unidad or '-' }}</div>
         </div>
+
         <div class="col-md-4 text-md-end">
-          <div><strong>Stock actual:</strong> {{ producto.cantidad }}</div>
+          <div>
+            <strong>Stock actual:</strong>
+            <span class="fw-bold">{{ stock_pzas }}</span>
+            <span class="text-muted small">pzas</span>
+          </div>
+
+          {% if producto.piezas_por_unidad and producto.piezas_por_unidad > 0 %}
+            <div class="text-muted small">
+              ≈ {{ (stock_pzas // producto.piezas_por_unidad) }}
+              {{ producto.unidad_compra or 'unid' }}
+              ({{ producto.piezas_por_unidad }} pzas c/u)
+            </div>
+          {% endif %}
+
           <a class="btn btn-success mt-2"
              href="{{ url_for('nuevo_movimiento', producto_id=producto.id) }}">
             + Nuevo movimiento
@@ -76,7 +94,15 @@
               </td>
 
               <td style="white-space:nowrap;">
-                {{ m.cantidad }}
+                <span class="fw-semibold">{{ m.cantidad }}</span>
+                <span class="text-muted small">pzas</span>
+
+                {% if m.producto and m.producto.piezas_por_unidad and m.producto.piezas_por_unidad > 0 %}
+                  <div class="text-muted small">
+                    ≈ {{ (m.cantidad // m.producto.piezas_por_unidad) }}
+                    {{ m.producto.unidad_compra or 'unid' }}
+                  </div>
+                {% endif %}
               </td>
 
               <td>

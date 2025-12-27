@@ -5,20 +5,22 @@
     <title>Inventario</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
+
 <body class="container mt-4">
 
-    <h1 class="mb-4">Inventario</h1>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="m-0">Inventario</h1>
+        <a href="{{ url_for('agregar') }}" class="btn btn-success">➕ Agregar producto</a>
+    </div>
 
     <form method="get" class="mb-3">
         <div class="input-group">
-            <input type="text" name="q" class="form-control" placeholder="Buscar por nombre o código..."
+            <input type="text" name="q" class="form-control" placeholder="Buscar por nombre, código o categoría..."
                    value="{{ request.args.get('q', '') }}">
             <button type="submit" class="btn btn-outline-primary">Buscar</button>
             <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Limpiar</a>
         </div>
     </form>
-
-    <a href="{{ url_for('agregar') }}" class="btn btn-success mb-3">Agregar nuevo producto</a>
 
     <div class="table-responsive">
         <table class="table table-bordered table-striped align-middle">
@@ -29,19 +31,26 @@
                     <th>Código</th>
                     <th>Categoría</th>
                     <th>Unidad</th>
-                    <th>Cantidad</th>
+                    <th>Stock</th>
                     <th>Costo</th>
                     <th>Precio</th>
                     <th>Ingreso</th>
                     <th>Caducidad</th>
-                    <th>Proveedor</th>
+                    <th>Marca/Proveedor</th>
                     <th>Lote</th>
                     <th>Última modificación</th>
                     <th style="white-space:nowrap;">Acciones</th>
                 </tr>
             </thead>
+
             <tbody>
                 {% for producto in productos %}
+
+                {# --- determinamos stock real en piezas --- #}
+                {% set stock_pzas = (producto.cantidad_piezas if producto.cantidad_piezas is not none else (producto.cantidad or 0)) %}
+                {% set minimo = (producto.stock_minimo if producto.stock_minimo is not none else 0) %}
+                {% set bajo = (stock_pzas <= minimo) %}
+
                 <tr>
                     <td class="text-center" style="width:70px;">
                         {% if producto.imagen %}
@@ -51,25 +60,73 @@
                         {% endif %}
                     </td>
 
-                    <td>{{ producto.nombre }}</td>
+                    <td class="fw-semibold">{{ producto.nombre }}</td>
                     <td>{{ producto.codigo }}</td>
                     <td>{{ producto.categoria or '' }}</td>
-                    <td>{{ producto.unidad }}</td>
+                    <td>{{ producto.unidad or '' }}</td>
 
-                    <td class="{% if producto.stock_minimo is not none and producto.cantidad is not none and producto.cantidad <= producto.stock_minimo %}table-danger fw-bold{% endif %}">
-                      {{ producto.cantidad }}
-                      {% if producto.stock_minimo is not none and producto.cantidad is not none and producto.cantidad <= producto.stock_minimo %}
-                        <span class="badge bg-danger ms-2">BAJO</span>
-                      {% endif %}
+                    <!-- STOCK -->
+                    <td class="{% if bajo %}table-danger fw-bold{% endif %}">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div>
+                                    {{ stock_pzas }}
+                                    <span class="text-muted small">pzas</span>
+                                    {% if bajo %}
+                                        <span class="badge bg-danger ms-2">BAJO</span>
+                                    {% endif %}
+                                </div>
+
+                                {% if producto.piezas_por_unidad and producto.piezas_por_unidad > 0 %}
+                                    <div class="text-muted small">
+                                        ≈ {{ (stock_pzas // producto.piezas_por_unidad) }}
+                                        {{ producto.unidad_compra or 'unid' }}
+                                        ({{ producto.piezas_por_unidad }} pzas c/u)
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            {% if minimo %}
+                            <div class="text-muted small text-end">
+                                mín: {{ minimo }} pzas
+                            </div>
+                            {% endif %}
+                        </div>
                     </td>
 
-                    <td>${{ '%.2f'|format(producto.costo) }}</td>
-                    <td>${{ '%.2f'|format(producto.precio) }}</td>
-                    <td>{{ producto.ingreso.strftime('%Y-%m-%d') if producto.ingreso }}</td>
-                    <td>{{ producto.caducidad.strftime('%Y-%m-%d') if producto.caducidad }}</td>
+                    <!-- COSTO -->
+                    <td>
+                        {% if producto.costo is not none %}
+                            ${{ '%.2f'|format(producto.costo) }}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- PRECIO -->
+                    <td>
+                        {% if producto.precio is not none %}
+                            <div class="d-flex align-items-center gap-2">
+                                <span>${{ '%.2f'|format(producto.precio) }}</span>
+                                {% if producto.aplica_iva %}
+                                    <span class="badge bg-success">IVA</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-muted small">
+                                margen: {{ ((producto.margen if producto.margen is not none else 0.35) * 100) | round(0) }}%
+                            </div>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- FECHAS -->
+                    <td>{{ producto.fecha_ingreso.strftime('%Y-%m-%d') if producto.fecha_ingreso else '' }}</td>
+                    <td>{{ producto.caducidad.strftime('%Y-%m-%d') if producto.caducidad else '' }}</td>
+
                     <td>{{ producto.proveedor or '' }}</td>
                     <td>{{ producto.lote or '' }}</td>
-                    <td>{{ producto.ultima_modificacion.strftime('%Y-%m-%d %H:%M') if producto.ultima_modificacion }}</td>
+                    <td>{{ producto.ultima_modificacion.strftime('%Y-%m-%d %H:%M') if producto.ultima_modificacion else '' }}</td>
 
                     <td style="white-space:nowrap;">
                         <a href="{{ url_for('editar', id=producto.id) }}" class="btn btn-sm btn-primary">✏️ Editar</a>

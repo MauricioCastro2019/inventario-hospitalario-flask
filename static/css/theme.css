@@ -1,0 +1,313 @@
+:root{
+    --hmv-primary: #5A1D6D;
+    --hmv-primary-2: #7A2B8A;
+    --hmv-lavender: #EDE3F1;
+  
+    --hmv-gray: #2B2B2B;
+    --hmv-muted: #6B7280;
+  
+    --hmv-bg: #F7F8FA;
+    --hmv-card: #FFFFFF;
+    --hmv-border: #E5E7EB;
+  
+    --hmv-danger: #B42318;
+    --hmv-warning: #B54708;
+    --hmv-success: #027A48;
+  
+    --hmv-radius: 16px;
+    --hmv-radius-sm: 12px;
+    --hmv-shadow: 0 6px 18px rgba(0,0,0,.04);
+  }
+  
+  /* Base */
+  body{
+    background: var(--hmv-bg);
+    color: var(--hmv-gray);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  }
+  
+  .hmv-container{
+    padding-bottom: 28px;
+  }
+  
+  .hmv-muted{ color: var(--hmv-muted); }
+  .hmv-title{
+    font-weight: 800;
+    letter-spacing: .2px;
+  }
+  
+  /* Safety global (bien) */
+  img{
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* ---------------------------
+     TOPBAR / NAVBAR
+  --------------------------- */
+  .hmv-topbar{
+    background: #fff;
+    border-bottom: 1px solid var(--hmv-border);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  
+  /* Watermark PRO (controlado: tamaño fijo, NO inset 0) */
+  .hmv-topbar::after{
+    content:"";
+    position:absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 140px;          /* tamaño fijo = no se vuelve gigante */
+    height: 40px;
+    background: url("/static/branding/logo_hmv.png") no-repeat center / contain;
+    opacity: 0.05;         /* sutil */
+    pointer-events: none;
+  }
+  
+  /* Contenido encima del watermark */
+  .hmv-topbar-inner{
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 14px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Compat: navbar viejo */
+  .hmv-navbar{
+    background: #fff;
+    border-bottom: 1px solid var(--hmv-border);
+  }
+  
+  /* Brand */
+  .hmv-brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    text-decoration:none;
+    color: var(--hmv-gray);
+  }
+  
+  /* AQUÍ controlamos el logo real del header */
+  .hmv-logo{
+    height: 44px;
+    width: auto;
+    display:block;
+    flex: 0 0 auto;
+  }
+  
+  .hmv-brand-text{
+    display:flex;
+    flex-direction: column;
+    line-height: 1.05;
+  }
+  
+  .hmv-brand-title{
+    font-weight: 900;
+    letter-spacing: .3px;
+  }
+  
+  .hmv-brand-subtitle{
+    font-size: 12px;
+    color: var(--hmv-muted);
+    margin-top: 2px;
+  }
+  
+  .hmv-topbar-actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap: wrap;
+  }
+  
+  /* ---------------------------
+     BOTONES
+  --------------------------- */
+  .hmv-btn-primary{
+    background: var(--hmv-primary);
+    border: 1px solid var(--hmv-primary);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: var(--hmv-radius-sm);
+    cursor: pointer;
+    font-weight: 800;
+  }
+  
+  .hmv-btn-primary:hover{
+    background: var(--hmv-primary-2);
+    border-color: var(--hmv-primary-2);
+    color: #fff;
+  }
+  
+  .hmv-btn-outline{
+    background: transparent;
+    border: 1px solid var(--hmv-primary);
+    color: var(--hmv-primary);
+    padding: 10px 14px;
+    border-radius: var(--hmv-radius-sm);
+    cursor: pointer;
+    font-weight: 800;
+  }
+  
+  .hmv-btn-outline:hover{
+    background: var(--hmv-lavender);
+    color: var(--hmv-primary);
+  }
+  
+  /* Compat con HTML viejo */
+  .btn-hmv{
+    background: var(--hmv-primary);
+    border: 1px solid var(--hmv-primary);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: var(--hmv-radius-sm);
+    cursor: pointer;
+    font-weight: 800;
+  }
+  .btn-hmv:hover{
+    background: var(--hmv-primary-2);
+    border-color: var(--hmv-primary-2);
+  }
+  
+  .btn-hmv-outline{
+    background: transparent;
+    border: 1px solid var(--hmv-primary);
+    color: var(--hmv-primary);
+    padding: 10px 14px;
+    border-radius: var(--hmv-radius-sm);
+    cursor: pointer;
+    font-weight: 800;
+  }
+  .btn-hmv-outline:hover{
+    background: var(--hmv-lavender);
+  }
+  
+  /* ---------------------------
+     CARDS / SECCIONES
+  --------------------------- */
+  .hmv-card{
+    background: var(--hmv-card);
+    border: 1px solid var(--hmv-border);
+    border-radius: var(--hmv-radius);
+    box-shadow: var(--hmv-shadow);
+    overflow: hidden;
+  }
+  
+  .hmv-card-header{
+    padding: 16px;
+    border-bottom: 1px solid var(--hmv-border);
+    display:flex;
+    align-items:flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  
+  .hmv-card-body{ padding: 16px; }
+  
+  .hmv-section{
+    border: 1px solid var(--hmv-border);
+    border-radius: var(--hmv-radius);
+    padding: 14px;
+    background: #fff;
+    margin-bottom: 14px;
+  }
+  
+  .hmv-section-title{
+    font-weight: 900;
+    margin-bottom: 10px;
+    letter-spacing: .2px;
+  }
+  
+  .hmv-callout{
+    border: 1px solid var(--hmv-border);
+    border-radius: var(--hmv-radius);
+    background: linear-gradient(180deg, rgba(237,227,241,.45), rgba(255,255,255,1));
+    padding: 12px 14px;
+  }
+  
+  /* ---------------------------
+     FORM INPUTS
+  --------------------------- */
+  input, select, textarea{
+    border: 1px solid var(--hmv-border);
+    border-radius: var(--hmv-radius-sm);
+    padding: 10px 12px;
+    outline: none;
+  }
+  
+  input:focus, select:focus, textarea:focus{
+    border-color: var(--hmv-primary);
+    box-shadow: 0 0 0 3px rgba(90, 29, 109, .12);
+  }
+  
+  /* badges */
+  .badge-hmv{
+    display:inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: var(--hmv-lavender);
+    color: var(--hmv-primary);
+    font-weight: 900;
+    font-size: 12px;
+  }
+  
+  /* ---------------------------
+     TABLA HMV
+  --------------------------- */
+  .table-hmv{
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+    border: 1px solid var(--hmv-border);
+    border-radius: var(--hmv-radius);
+    overflow: hidden;
+  }
+  
+  .table-hmv thead th{
+    background: #0f172a;
+    color: #fff;
+    font-weight: 800;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+    padding: 12px 14px;
+  }
+  
+  .table-hmv tbody td{
+    padding: 12px 14px;
+    border-top: 1px solid var(--hmv-border);
+    vertical-align: middle;
+  }
+  
+  .table-hmv tbody tr:hover{
+    background: rgba(90, 29, 109, 0.04);
+  }
+  
+  /* Responsive */
+  @media (max-width: 576px){
+    .hmv-topbar-inner{ padding: 12px 10px; }
+    .hmv-logo{ height: 40px; }
+    .hmv-card-header{
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    /* Watermark más discreto en cel */
+    .hmv-topbar::after{
+      width: 120px;
+      height: 34px;
+      opacity: 0.04;
+    }
+  }
+  /* Compat: si algún template usa <img> sin class="hmv-logo" dentro de .hmv-brand */
+.hmv-brand img{
+    height: 44px !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+  

@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from werkzeug.utils import secure_filename
+from sqlalchemy import text
 import os
 
 app = Flask(__name__)
@@ -21,7 +22,7 @@ def clean_db_url(raw: str) -> str:
     s = s.strip('"').strip("'").strip()
 
     # Si Railway/otra config te dejó placeholders sin expandir, NO intentes parsearlo.
-    if "${" in s or "}" in s and "${" in s:
+    if "${" in s:
         return ""
 
     if s.startswith("postgres://"):
@@ -47,7 +48,7 @@ else:
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["UPLOAD_FOLDER"] = "static/uploads"
 
-# (Opcional pero recomendado) evita conexiones zombie en Postgres
+# Evita conexiones zombie en Postgres (cuando aplique)
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True
 }
@@ -119,7 +120,6 @@ class Producto(db.Model):
         cascade="all, delete-orphan"
     )
 
-
 class Movimiento(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     producto_id = db.Column(db.Integer, db.ForeignKey("producto.id"), nullable=False)
@@ -128,10 +128,87 @@ class Movimiento(db.Model):
     fecha = db.Column(db.DateTime, default=datetime.utcnow)
     nota = db.Column(db.String(255))
 
-# ⚠️ Nota: create_all es OK para prototipo.
-# Si ya usas Postgres en serio, lo ideal es Flask-Migrate.
+# ---------------------------
+# AUTOPARCHE DE ESQUEMA (SQLite friendly)
+# ---------------------------
+
+def ensure_product_columns():
+    """
+    Asegura que la tabla 'producto' tenga columnas que el modelo/plantillas esperan.
+    Evita errores tipo: sqlite3.OperationalError: no such column: producto.unidad_compra
+    NO borra datos. Funciona excelente en SQLite.
+    En Postgres, esto normalmente se haría con migraciones (Flask-Migrate).
+    """
+    required = {
+        "nombre": "TEXT",
+        "codigo": "TEXT",
+        "descripcion": "TEXT",
+        "proveedor": "TEXT",
+        "lote": "TEXT",
+        "categoria": "TEXT",
+        "unidad": "TEXT",
+        "cantidad": "INTEGER",
+
+        "unidad_compra": "TEXT",
+        "piezas_por_unidad": "INTEGER",
+        "cantidad_piezas": "INTEGER",
+
+        "stock_minimo": "INTEGER",
+        "costo": "REAL",
+        "margen": "REAL",
+        "aplica_iva": "INTEGER",     # SQLite: 0/1
+        "precio": "REAL",
+
+        "fecha_ingreso": "DATE",
+        "caducidad": "DATE",
+
+        "imagen": "TEXT",
+        "ultima_modificacion": "DATETIME"
+    }
+
+    try:
+        # Solo aplica ALTER TABLE directo en SQLite.
+        uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
+        is_sqlite = uri.startswith("sqlite")
+
+        if not is_sqlite:
+            # En Postgres, mejor confiar en create_all para tablas nuevas.
+            # Si falta columna en producción, lo correcto es migración.
+            print("ℹ️ ensure_product_columns: DB no es SQLite. Saltando autoparche.")
+            return
+
+        cols = db.session.execute(text("PRAGMA table_info(producto)")).fetchall()
+        existing = {c[1] for c in cols}
+
+        added = False
+        for col, coltype in required.items():
+            if col not in existing:
+                db.session.execute(text(f"ALTER TABLE producto ADD COLUMN {col} {coltype}"))
+                print(f"✅ Columna agregada: {col} ({coltype})")
+                added = True
+
+        if added:
+            db.session.commit()
+            print("✅ Tabla 'producto' actualizada sin perder datos.")
+        else:
+            print("✅ Tabla 'producto' ya estaba actualizada.")
+
+    except Exception as e:
+        print("⚠️ Error en ensure_product_columns():", e)
+
+def ensure_upload_folder():
+    try:
+        os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+    except Exception as e:
+        print("⚠️ No se pudo crear UPLOAD_FOLDER:", e)
+
+# ---------------------------
+# INIT DB (prototipo)
+# ---------------------------
 with app.app_context():
     db.create_all()
+    ensure_product_columns()
+    ensure_upload_folder()
 
 # ---------------------------
 # RUTAS
@@ -218,7 +295,6 @@ def agregar():
 
         imagen = request.files.get("imagen")
         if imagen and imagen.filename:
-            os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
             filename = secure_filename(imagen.filename)
             imagen.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
             producto.imagen = filename
@@ -282,7 +358,6 @@ def editar(id):
 
         imagen = request.files.get("imagen")
         if imagen and imagen.filename:
-            os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
             filename = secure_filename(imagen.filename)
             imagen.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
             producto.imagen = filename

@@ -1,125 +1,262 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Movimientos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Movimientos | Hospital Médica Vida</title>
+
+  <!-- Bootstrap (puedes dejarlo) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+  <!-- Tema HMV -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
 </head>
 
-<body class="container mt-4">
+<body>
 
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="m-0">Movimientos</h2>
-    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Volver al inventario</a>
-  </div>
-
-  {% if producto %}
-    {% set stock_pzas = (producto.cantidad_piezas if producto.cantidad_piezas is not none else (producto.cantidad or 0)) %}
-
-    <div class="alert alert-light border">
-      <div class="row">
-        <div class="col-md-8">
-          <div><strong>Producto:</strong> {{ producto.nombre }}</div>
-          <div><strong>Código:</strong> {{ producto.codigo }}</div>
-          <div><strong>Categoría:</strong> {{ producto.categoria or '-' }}</div>
-          <div><strong>Unidad:</strong> {{ producto.unidad or '-' }}</div>
-        </div>
-
-        <div class="col-md-4 text-md-end">
-          <div>
-            <strong>Stock actual:</strong>
-            <span class="fw-bold">{{ stock_pzas }}</span>
-            <span class="text-muted small">pzas</span>
-          </div>
-
-          {% if producto.piezas_por_unidad and producto.piezas_por_unidad > 0 %}
-            <div class="text-muted small">
-              ≈ {{ (stock_pzas // producto.piezas_por_unidad) }}
-              {{ producto.unidad_compra or 'unid' }}
-              ({{ producto.piezas_por_unidad }} pzas c/u)
-            </div>
-          {% endif %}
-
-          <a class="btn btn-success mt-2"
-             href="{{ url_for('nuevo_movimiento', producto_id=producto.id) }}">
-            + Nuevo movimiento
-          </a>
+  <!-- TOPBAR HMV -->
+  <header class="hmv-topbar">
+    <div class="hmv-topbar-inner">
+      <div class="hmv-brand">
+        <img src="{{ url_for('static', filename='branding/logo_hmv.png') }}" alt="Hospital Médica Vida" class="hmv-logo">
+        <div class="hmv-brand-text">
+          <div class="hmv-brand-title">Hospital Médica Vida</div>
+          <div class="hmv-brand-subtitle">Inventario • Movimientos • Control</div>
         </div>
       </div>
+
+      <div class="hmv-topbar-actions">
+        <a href="{{ url_for('index') }}" class="btn hmv-btn-outline">← Volver al inventario</a>
+      </div>
     </div>
-  {% else %}
-    <div class="alert alert-info">
-      Mostrando los <strong>últimos movimientos</strong> (vista general).
-      Para ver un producto en específico, entra desde el inventario usando el botón “Movimientos”.
-    </div>
-  {% endif %}
+  </header>
 
-  <div class="table-responsive">
-    <table class="table table-bordered table-striped align-middle">
-      <thead class="table-dark">
-        <tr>
-          <th style="white-space:nowrap;">Fecha</th>
-          <th>Producto</th>
-          <th style="white-space:nowrap;">Tipo</th>
-          <th style="white-space:nowrap;">Cantidad</th>
-          <th>Nota</th>
-        </tr>
-      </thead>
+  <main class="container hmv-container mt-4">
 
-      <tbody>
-        {% if movimientos and movimientos|length > 0 %}
-          {% for m in movimientos %}
-            <tr>
-              <td style="white-space:nowrap;">
-                {{ m.fecha.strftime('%Y-%m-%d %H:%M') }}
-              </td>
+    {% if producto %}
+      {% set stock_pzas = (producto.cantidad_piezas if producto.cantidad_piezas is not none else (producto.cantidad or 0)) %}
 
-              <td>
-                {% if m.producto %}
-                  <div><strong>{{ m.producto.nombre }}</strong></div>
-                  <div class="text-muted small">{{ m.producto.codigo }}</div>
-                {% else %}
-                  -
-                {% endif %}
-              </td>
+      <section class="hmv-card">
+        <div class="hmv-card-header">
+          <div>
+            <h1 class="hmv-title m-0">Movimientos</h1>
+            <div class="hmv-muted">Bitácora de entradas y salidas (en piezas).</div>
+          </div>
 
-              <td style="white-space:nowrap;">
-                {% if m.tipo == 'entrada' %}
-                  <span class="badge bg-success">Entrada</span>
-                {% elif m.tipo == 'salida' %}
-                  <span class="badge bg-danger">Salida</span>
-                {% else %}
-                  <span class="badge bg-secondary">{{ m.tipo }}</span>
-                {% endif %}
-              </td>
+          <div class="d-flex gap-2">
+            <a class="btn hmv-btn-primary" href="{{ url_for('nuevo_movimiento', producto_id=producto.id) }}">
+              + Nuevo movimiento
+            </a>
+          </div>
+        </div>
 
-              <td style="white-space:nowrap;">
-                <span class="fw-semibold">{{ m.cantidad }}</span>
-                <span class="text-muted small">pzas</span>
+        <div class="hmv-card-body">
 
-                {% if m.producto and m.producto.piezas_por_unidad and m.producto.piezas_por_unidad > 0 %}
-                  <div class="text-muted small">
-                    ≈ {{ (m.cantidad // m.producto.piezas_por_unidad) }}
-                    {{ m.producto.unidad_compra or 'unid' }}
+          <!-- FICHA DEL PRODUCTO -->
+          <div class="hmv-callout mb-3">
+            <div class="row g-2 align-items-start">
+              <div class="col-md-8">
+                <div class="fw-semibold">{{ producto.nombre }}</div>
+                <div class="hmv-muted small mt-1">
+                  <span class="me-3"><b>Código:</b> {{ producto.codigo }}</span>
+                  <span class="me-3"><b>Categoría:</b> {{ producto.categoria or '-' }}</span>
+                  <span><b>Unidad:</b> {{ producto.unidad or '-' }}</span>
+                </div>
+              </div>
+
+              <div class="col-md-4 text-md-end">
+                <div>
+                  <span class="hmv-muted">Stock actual:</span>
+                  <span class="fw-bold ms-1">{{ stock_pzas }}</span>
+                  <span class="hmv-muted small">pzas</span>
+                </div>
+
+                {% if producto.piezas_por_unidad and producto.piezas_por_unidad > 0 %}
+                  <div class="hmv-muted small mt-1">
+                    ≈ {{ (stock_pzas // producto.piezas_por_unidad) }}
+                    {{ producto.unidad_compra or 'unid' }}
+                    ({{ producto.piezas_por_unidad }} pzas c/u)
                   </div>
                 {% endif %}
-              </td>
+              </div>
+            </div>
+          </div>
 
-              <td>
-                {{ m.nota or '' }}
-              </td>
-            </tr>
-          {% endfor %}
-        {% else %}
-          <tr>
-            <td colspan="5" class="text-center text-muted">
-              Aún no hay movimientos registrados.
-            </td>
-          </tr>
-        {% endif %}
-      </tbody>
-    </table>
-  </div>
+          <!-- TABLA -->
+          <div class="table-responsive">
+            <table class="table table-hmv align-middle">
+              <thead>
+                <tr>
+                  <th style="white-space:nowrap;">Fecha</th>
+                  <th>Producto</th>
+                  <th style="white-space:nowrap;">Tipo</th>
+                  <th style="white-space:nowrap;">Cantidad</th>
+                  <th>Nota</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% if movimientos and movimientos|length > 0 %}
+                  {% for m in movimientos %}
+                    <tr>
+                      <td style="white-space:nowrap;">
+                        {{ m.fecha.strftime('%Y-%m-%d %H:%M') }}
+                      </td>
+
+                      <td>
+                        {% if m.producto %}
+                          <div class="fw-semibold">{{ m.producto.nombre }}</div>
+                          <div class="hmv-muted small">{{ m.producto.codigo }}</div>
+                        {% else %}
+                          <span class="hmv-muted">—</span>
+                        {% endif %}
+                      </td>
+
+                      <td style="white-space:nowrap;">
+                        {% if m.tipo == 'entrada' %}
+                          <span class="badge bg-success">Entrada</span>
+                        {% elif m.tipo == 'salida' %}
+                          <span class="badge bg-danger">Salida</span>
+                        {% else %}
+                          <span class="badge bg-secondary">{{ m.tipo }}</span>
+                        {% endif %}
+                      </td>
+
+                      <td style="white-space:nowrap;">
+                        <span class="fw-semibold">{{ m.cantidad }}</span>
+                        <span class="hmv-muted small">pzas</span>
+
+                        {% if m.producto and m.producto.piezas_por_unidad and m.producto.piezas_por_unidad > 0 %}
+                          <div class="hmv-muted small">
+                            ≈ {{ (m.cantidad // m.producto.piezas_por_unidad) }}
+                            {{ m.producto.unidad_compra or 'unid' }}
+                          </div>
+                        {% endif %}
+                      </td>
+
+                      <td>
+                        {{ m.nota or '' }}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="5" class="text-center hmv-muted">
+                      Aún no hay movimientos registrados.
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </section>
+
+    {% else %}
+
+      <!-- VISTA GENERAL -->
+      <section class="hmv-card">
+        <div class="hmv-card-header">
+          <div>
+            <h1 class="hmv-title m-0">Movimientos</h1>
+            <div class="hmv-muted">
+              Mostrando los <b>últimos movimientos</b> (vista general). Para un producto específico, entra desde Inventario.
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('index') }}" class="btn hmv-btn-outline">Ir al inventario</a>
+          </div>
+        </div>
+
+        <div class="hmv-card-body">
+
+          <div class="hmv-callout mb-3">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+              <div>
+                <div class="fw-semibold">Bitácora general</div>
+                <div class="hmv-muted small">Ideal para auditoría rápida y trazabilidad.</div>
+              </div>
+              <div class="hmv-muted small">
+                Tip: Desde Inventario → “📋 Movimientos” filtras por producto.
+              </div>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hmv align-middle">
+              <thead>
+                <tr>
+                  <th style="white-space:nowrap;">Fecha</th>
+                  <th>Producto</th>
+                  <th style="white-space:nowrap;">Tipo</th>
+                  <th style="white-space:nowrap;">Cantidad</th>
+                  <th>Nota</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% if movimientos and movimientos|length > 0 %}
+                  {% for m in movimientos %}
+                    <tr>
+                      <td style="white-space:nowrap;">
+                        {{ m.fecha.strftime('%Y-%m-%d %H:%M') }}
+                      </td>
+
+                      <td>
+                        {% if m.producto %}
+                          <div class="fw-semibold">{{ m.producto.nombre }}</div>
+                          <div class="hmv-muted small">{{ m.producto.codigo }}</div>
+                        {% else %}
+                          <span class="hmv-muted">—</span>
+                        {% endif %}
+                      </td>
+
+                      <td style="white-space:nowrap;">
+                        {% if m.tipo == 'entrada' %}
+                          <span class="badge bg-success">Entrada</span>
+                        {% elif m.tipo == 'salida' %}
+                          <span class="badge bg-danger">Salida</span>
+                        {% else %}
+                          <span class="badge bg-secondary">{{ m.tipo }}</span>
+                        {% endif %}
+                      </td>
+
+                      <td style="white-space:nowrap;">
+                        <span class="fw-semibold">{{ m.cantidad }}</span>
+                        <span class="hmv-muted small">pzas</span>
+
+                        {% if m.producto and m.producto.piezas_por_unidad and m.producto.piezas_por_unidad > 0 %}
+                          <div class="hmv-muted small">
+                            ≈ {{ (m.cantidad // m.producto.piezas_por_unidad) }}
+                            {{ m.producto.unidad_compra or 'unid' }}
+                          </div>
+                        {% endif %}
+                      </td>
+
+                      <td>
+                        {{ m.nota or '' }}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="5" class="text-center hmv-muted">
+                      Aún no hay movimientos registrados.
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </section>
+
+    {% endif %}
+
+  </main>
 
 </body>
 </html>

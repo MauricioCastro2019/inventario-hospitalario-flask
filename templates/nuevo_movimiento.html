@@ -1,137 +1,205 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Nuevo movimiento</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nuevo movimiento | Hospital Médica Vida</title>
+
+  <!-- Bootstrap (puedes dejarlo) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+  <!-- Tema HMV -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
 </head>
 
-<body class="container mt-4">
+<body>
 
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="m-0">Nuevo movimiento</h2>
-    <a href="{{ url_for('movimientos', producto_id=producto.id) }}" class="btn btn-outline-secondary">
-      Volver
-    </a>
-  </div>
+  <!-- TOPBAR HMV -->
+  <header class="hmv-topbar">
+    <div class="hmv-topbar-inner">
+      <div class="hmv-brand">
+        <img src="{{ url_for('static', filename='branding/logo_hmv.png') }}" alt="Hospital Médica Vida" class="hmv-logo">
+        <div class="hmv-brand-text">
+          <div class="hmv-brand-title">Hospital Médica Vida</div>
+          <div class="hmv-brand-subtitle">Inventario • Movimientos • Control</div>
+        </div>
+      </div>
+
+      <div class="hmv-topbar-actions">
+        <a href="{{ url_for('movimientos', producto_id=producto.id) }}" class="btn hmv-btn-outline">← Volver</a>
+      </div>
+    </div>
+  </header>
 
   {% set stock_pzas = (producto.cantidad_piezas if producto.cantidad_piezas is not none else (producto.cantidad or 0)) %}
   {% set ppu = (producto.piezas_por_unidad if producto.piezas_por_unidad is not none else 0) %}
 
-  <div class="alert alert-light border">
-    <div class="row">
-      <div class="col-md-8">
-        <div><strong>Producto:</strong> {{ producto.nombre }}</div>
-        <div><strong>Código:</strong> {{ producto.codigo }}</div>
-        <div><strong>Categoría:</strong> {{ producto.categoria or '-' }}</div>
-        <div><strong>Unidad:</strong> {{ producto.unidad or '-' }}</div>
-      </div>
-
-      <div class="col-md-4 text-md-end">
+  <main class="container hmv-container">
+    <div class="hmv-card mt-4">
+      <div class="hmv-card-header">
         <div>
-          <strong>Stock actual:</strong>
-          <span class="fw-bold">{{ stock_pzas }}</span>
-          <span class="text-muted small">pzas</span>
+          <h1 class="hmv-title m-0">Nuevo movimiento</h1>
+          <div class="hmv-muted">
+            Registra entradas y salidas en <b>piezas</b> para mantener consistencia y evitar errores.
+          </div>
         </div>
 
-        {% if producto.piezas_por_unidad and producto.piezas_por_unidad > 0 %}
-          <div class="text-muted small">
-            ≈ {{ (stock_pzas // producto.piezas_por_unidad) }}
-            {{ producto.unidad_compra or 'unid' }}
-            ({{ producto.piezas_por_unidad }} pzas c/u)
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('movimientos', producto_id=producto.id) }}" class="btn hmv-btn-outline">Cancelar</a>
+          <button type="submit" form="form-mov" class="btn hmv-btn-primary">Guardar movimiento</button>
+        </div>
+      </div>
+
+      <div class="hmv-card-body">
+
+        <!-- Ficha del producto -->
+        <div class="hmv-callout mb-3">
+          <div class="row g-2 align-items-start">
+            <div class="col-md-8">
+              <div class="fw-semibold">{{ producto.nombre }}</div>
+              <div class="hmv-muted small mt-1">
+                <span class="me-3"><b>Código:</b> {{ producto.codigo }}</span>
+                <span class="me-3"><b>Categoría:</b> {{ producto.categoria or '-' }}</span>
+                <span><b>Unidad:</b> {{ producto.unidad or '-' }}</span>
+              </div>
+            </div>
+
+            <div class="col-md-4 text-md-end">
+              <div>
+                <span class="hmv-muted">Stock actual:</span>
+                <span class="fw-bold ms-1">{{ stock_pzas }}</span>
+                <span class="hmv-muted small">pzas</span>
+              </div>
+
+              {% if producto.piezas_por_unidad and producto.piezas_por_unidad > 0 %}
+                <div class="hmv-muted small mt-1">
+                  ≈ {{ (stock_pzas // producto.piezas_por_unidad) }}
+                  {{ producto.unidad_compra or 'unid' }}
+                  ({{ producto.piezas_por_unidad }} pzas c/u)
+                </div>
+              {% endif %}
+            </div>
           </div>
-        {% endif %}
+        </div>
+
+        <!-- FORM -->
+        <form id="form-mov" method="post">
+          <div class="hmv-section">
+            <div class="hmv-section-title">Captura del movimiento</div>
+
+            <div class="row g-3">
+
+              <div class="col-md-4">
+                <label class="form-label">Tipo</label>
+                <select name="tipo" class="form-select" required onchange="actualizarEstiloTipo()">
+                  <option value="entrada">Entrada</option>
+                  <option value="salida">Salida</option>
+                </select>
+                <div class="form-text">Entrada suma, salida resta.</div>
+              </div>
+
+              <!-- Captura en cajas toggle -->
+              <div class="col-md-4">
+                <label class="form-label">Modo de captura</label>
+
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="modo_cajas" onchange="toggleModo()"
+                         {% if producto.piezas_por_unidad and producto.piezas_por_unidad > 0 %}checked{% endif %}>
+                  <label class="form-check-label" for="modo_cajas">
+                    Capturar en {{ producto.unidad_compra or 'cajas/unidades' }}
+                  </label>
+                </div>
+
+                <div class="form-text">
+                  {% if producto.piezas_por_unidad and producto.piezas_por_unidad > 0 %}
+                    Convierte automáticamente usando <b>{{ producto.piezas_por_unidad }}</b> pzas por unidad.
+                  {% else %}
+                    Este producto no tiene “piezas por unidad” configurado. Se recomienda capturar en piezas.
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Cantidad en cajas -->
+              <div class="col-md-4" id="grupo_cajas" style="display:none;">
+                <label class="form-label">Cantidad ({{ producto.unidad_compra or 'unid' }})</label>
+                <input type="number" id="cantidad_cajas" class="form-control" min="1" value="1" oninput="calcularPiezas()">
+                <div class="form-text">
+                  Ej. 1 {{ producto.unidad_compra or 'unid' }} = {{ producto.piezas_por_unidad or 0 }} pzas
+                </div>
+              </div>
+
+              <!-- Cantidad en piezas -->
+              <div class="col-md-4" id="grupo_piezas">
+                <label class="form-label">Cantidad (piezas)</label>
+
+                <!-- ESTE ES EL CAMPO QUE SE ENVÍA AL BACKEND -->
+                <input type="number" name="cantidad" id="cantidad_piezas" class="form-control" min="1" required
+                       oninput="calcularPiezasDesdePiezas()">
+
+                <div class="form-text">
+                  Captura en piezas. Si usas modo {{ producto.unidad_compra or 'cajas' }}, aquí se calcula automático.
+                </div>
+              </div>
+
+              <div class="col-md-8">
+                <label class="form-label">Nota (opcional)</label>
+                <input type="text" name="nota" class="form-control"
+                       placeholder="Ej: Cirugía, merma, ajuste, compra, devolución...">
+              </div>
+
+            </div>
+
+            <!-- Conversión preview -->
+            <div class="hmv-callout mt-3 mb-0" id="preview_box">
+              <div class="d-flex justify-content-between">
+                <div class="fw-semibold">Conversión</div>
+                <div class="hmv-muted small">prevención de errores</div>
+              </div>
+
+              <div class="mt-2">
+                <span class="badge badge-hmv">Se registrarán</span>
+                <span class="fw-bold ms-2" id="preview_registro">0</span>
+                <span class="hmv-muted small">pzas</span>
+
+                <span class="ms-3" id="pill_tipo" class="badge bg-secondary">ENTRADA</span>
+              </div>
+
+              {% if producto.piezas_por_unidad and producto.piezas_por_unidad > 0 %}
+                <div class="hmv-muted small mt-1" id="preview_equiv">≈ 0 {{ producto.unidad_compra or 'unid' }}</div>
+              {% else %}
+                <div class="hmv-muted small mt-1">Este producto no tiene conversión configurada (piezas por unidad).</div>
+              {% endif %}
+            </div>
+
+            <!-- Acciones abajo (por UX) -->
+            <div class="d-flex gap-2 mt-3">
+              <button type="submit" class="btn hmv-btn-primary">Guardar movimiento</button>
+              <a href="{{ url_for('movimientos', producto_id=producto.id) }}" class="btn hmv-btn-outline">Cancelar</a>
+            </div>
+
+          </div>
+        </form>
+
       </div>
     </div>
-  </div>
-
-  <form method="post" class="card card-body">
-    <div class="row g-3">
-
-      <div class="col-md-4">
-        <label class="form-label">Tipo</label>
-        <select name="tipo" class="form-select" required>
-          <option value="entrada">Entrada</option>
-          <option value="salida">Salida</option>
-        </select>
-        <div class="form-text">Entrada suma, salida resta.</div>
-      </div>
-
-      <!-- Captura en cajas toggle -->
-      <div class="col-md-4">
-        <label class="form-label">Modo de captura</label>
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="modo_cajas" onchange="toggleModo()"
-                 {% if producto.piezas_por_unidad and producto.piezas_por_unidad > 0 %}checked{% endif %}>
-          <label class="form-check-label" for="modo_cajas">
-            Capturar en {{ producto.unidad_compra or 'cajas/unidades' }}
-          </label>
-        </div>
-        <div class="form-text">
-          {% if producto.piezas_por_unidad and producto.piezas_por_unidad > 0 %}
-            Convierte automáticamente usando <b>{{ producto.piezas_por_unidad }}</b> pzas por unidad.
-          {% else %}
-            Este producto no tiene “piezas por unidad” configurado. Se recomienda capturar en piezas.
-          {% endif %}
-        </div>
-      </div>
-
-      <!-- Cantidad en cajas -->
-      <div class="col-md-4" id="grupo_cajas" style="display:none;">
-        <label class="form-label">Cantidad ({{ producto.unidad_compra or 'unid' }})</label>
-        <input type="number" id="cantidad_cajas" class="form-control" min="1" value="1" oninput="calcularPiezas()">
-        <div class="form-text">Ej. 1 {{ producto.unidad_compra or 'unid' }} = {{ producto.piezas_por_unidad or 0 }} pzas</div>
-      </div>
-
-      <!-- Cantidad en piezas (visible siempre, pero puede ser readonly si está en modo cajas) -->
-      <div class="col-md-4" id="grupo_piezas">
-        <label class="form-label">Cantidad (piezas)</label>
-
-        <!-- ESTE ES EL CAMPO QUE SE ENVÍA AL BACKEND -->
-        <input type="number" name="cantidad" id="cantidad_piezas" class="form-control" min="1" required oninput="calcularPiezasDesdePiezas()">
-
-        <div class="form-text">
-          Captura en piezas. Si usas modo {{ producto.unidad_compra or 'cajas' }}, aquí se calcula automático.
-        </div>
-      </div>
-
-      <div class="col-md-12">
-        <label class="form-label">Nota (opcional)</label>
-        <input type="text" name="nota" class="form-control" placeholder="Ej: Cirugía, merma, ajuste, compra, devolución...">
-      </div>
-
-      <!-- Conversión preview -->
-      <div class="col-md-12">
-        <div class="alert alert-light border mb-0">
-          <div class="d-flex justify-content-between">
-            <div class="fw-semibold">Conversión</div>
-            <div class="text-muted small">prevención de errores</div>
-          </div>
-
-          <div class="mt-2">
-            <span class="badge text-bg-secondary">Se registrarán:</span>
-            <span class="fw-bold" id="preview_registro">0</span>
-            <span class="text-muted small">pzas</span>
-          </div>
-
-          {% if producto.piezas_por_unidad and producto.piezas_por_unidad > 0 %}
-          <div class="text-muted small mt-1" id="preview_equiv">≈ 0 {{ producto.unidad_compra or 'unid' }}</div>
-          {% else %}
-          <div class="text-muted small mt-1">Este producto no tiene conversión configurada (piezas por unidad).</div>
-          {% endif %}
-        </div>
-      </div>
-
-    </div>
-
-    <div class="mt-3 d-flex gap-2">
-      <button type="submit" class="btn btn-primary">Guardar movimiento</button>
-      <a href="{{ url_for('movimientos', producto_id=producto.id) }}" class="btn btn-outline-secondary">Cancelar</a>
-    </div>
-  </form>
+  </main>
 
   <script>
     const PPU = parseInt("{{ producto.piezas_por_unidad or 0 }}", 10) || 0;
+
+    function actualizarEstiloTipo() {
+      const selectTipo = document.querySelector('select[name="tipo"]');
+      const pill = document.getElementById("pill_tipo");
+
+      const tipo = selectTipo.value;
+      if (tipo === "salida") {
+        pill.className = "badge bg-danger";
+        pill.textContent = "SALIDA";
+      } else {
+        pill.className = "badge bg-success";
+        pill.textContent = "ENTRADA";
+      }
+    }
 
     function toggleModo() {
       const modo = document.getElementById("modo_cajas").checked;
@@ -141,7 +209,7 @@
       if (modo && PPU > 0) {
         grupoCajas.style.display = "block";
         cantidadPiezas.readOnly = true;
-        calcularPiezas(); // recalcula por si acaso
+        calcularPiezas();
       } else {
         grupoCajas.style.display = "none";
         cantidadPiezas.readOnly = false;
@@ -150,7 +218,6 @@
     }
 
     function calcularPiezas() {
-      // modo cajas -> piezas
       const cajas = parseInt(document.getElementById("cantidad_cajas").value || "0", 10);
       const piezas = (PPU > 0) ? (cajas * PPU) : cajas;
 
@@ -159,7 +226,6 @@
     }
 
     function calcularPiezasDesdePiezas() {
-      // modo piezas directo
       actualizarPreview();
     }
 
@@ -169,22 +235,21 @@
 
       if (PPU > 0) {
         const equiv = Math.floor(piezas / PPU);
-        document.getElementById("preview_equiv").textContent = "≈ " + equiv + " {{ producto.unidad_compra or 'unid' }}";
+        const equivEl = document.getElementById("preview_equiv");
+        if (equivEl) equivEl.textContent = "≈ " + equiv + " {{ producto.unidad_compra or 'unid' }}";
       }
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-      // inicializa modo sugerido: si hay ppu, prende modo cajas por default
       toggleModo();
       actualizarPreview();
+      actualizarEstiloTipo();
 
-      // si no hay PPU, forzamos modo piezas
       if (PPU <= 0) {
         document.getElementById("modo_cajas").checked = false;
         toggleModo();
       }
 
-      // valor inicial razonable
       const campo = document.getElementById("cantidad_piezas");
       if (!campo.value) {
         campo.value = 1;

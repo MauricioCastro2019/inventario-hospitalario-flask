@@ -219,52 +219,70 @@
     </main>
 
     <script>
+        let precioManual = false;
+      
         function calcularPrecio() {
-            // --- Precio ---
-            const costoEl = document.getElementById("costo");
-            const precioEl = document.getElementById("precio");
-            const aplicaIvaEl = document.getElementById("aplica_iva");
+          // --- Precio ---
+          const costoEl = document.getElementById("costo");
+          const precioEl = document.getElementById("precio");
+          const aplicaIvaEl = document.getElementById("aplica_iva");
+      
+          const previewPrecio = document.getElementById("preview_precio");
+          const previewIva = document.getElementById("preview_iva");
+      
+          const costo = parseFloat(costoEl.value);
+          const aplicaIva = aplicaIvaEl.checked;
+      
+          // IVA preview siempre
+          previewIva.textContent = aplicaIva ? "Sí" : "No";
+      
+          if (!isNaN(costo)) {
+            let sugerido = costo * 1.35;
+            if (aplicaIva) sugerido = sugerido * 1.16;
+      
+            // 🔥 Si NO lo tocaste manualmente, se actualiza siempre
+            if (!precioManual || precioEl.value.trim() === "") {
+              precioEl.value = sugerido.toFixed(2);
+              precioManual = false; // si estaba vacío, reactivamos auto
+            }
+      
+            previewPrecio.textContent = "$" + sugerido.toFixed(2);
+          } else {
+  previewPrecio.textContent = "$0.00";
+  previewIva.textContent = aplicaIva ? "Sí" : "No";
 
-            const previewPrecio = document.getElementById("preview_precio");
-            const previewIva = document.getElementById("preview_iva");
-
-            const costo = parseFloat(costoEl.value);
-            const aplicaIva = aplicaIvaEl.checked;
-
-            if (!isNaN(costo)) {
-                let sugerido = costo * 1.35;
-                if (aplicaIva) sugerido = sugerido * 1.16;
-
-                const current = parseFloat(precioEl.value);
-                if (precioEl.value === "" || isNaN(current)) {
-                    precioEl.value = sugerido.toFixed(2);
-                }
-
-                previewPrecio.textContent = "$" + sugerido.toFixed(2);
-                previewIva.textContent = aplicaIva ? "Sí" : "No";
+  // 🔥 si el costo está vacío, el precio no tiene sentido: límpialo
+  precioEl.value = "";
+  precioManual = false;
+}
+      
+          // --- Piezas estimadas ---
+          const cant = parseInt(document.getElementById("cantidad").value || "0", 10);
+          const ppu = parseInt((document.querySelector('input[name="piezas_por_unidad"]').value || "0"), 10);
+      
+          let piezas = 0;
+          if (!isNaN(cant)) {
+            if (!isNaN(ppu) && ppu > 0) {
+              piezas = cant * ppu;
             } else {
-                if (precioEl.value === "") precioEl.value = "";
-                previewPrecio.textContent = "$0.00";
-                previewIva.textContent = aplicaIva ? "Sí" : "No";
+              piezas = cant;
             }
-
-            // --- Piezas estimadas ---
-            const cant = parseInt(document.getElementById("cantidad").value || "0", 10);
-            const ppu = parseInt((document.querySelector('input[name="piezas_por_unidad"]').value || "0"), 10);
-
-            let piezas = 0;
-            if (!isNaN(cant)) {
-                if (!isNaN(ppu) && ppu > 0) {
-                    piezas = cant * ppu;
-                } else {
-                    piezas = cant;
-                }
-            }
-            document.getElementById("preview_piezas").textContent = String(piezas);
+          }
+          document.getElementById("preview_piezas").textContent = String(piezas);
         }
-
-        window.addEventListener("DOMContentLoaded", calcularPrecio);
-    </script>
-
+      
+        window.addEventListener("DOMContentLoaded", () => {
+          // Inicializa
+          calcularPrecio();
+      
+          // Si el usuario edita el precio manualmente, ya no lo sobrescribimos
+          const precioEl = document.getElementById("precio");
+          precioEl.addEventListener("input", () => {
+            // si lo vacía, vuelve a modo auto
+            precioManual = precioEl.value.trim() !== "";
+          });
+        });
+      </script>
+      
 </body>
 </html>

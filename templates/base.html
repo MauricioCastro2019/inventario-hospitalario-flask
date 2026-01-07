@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}HMV Digital{% endblock %}</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+
+  {% block head_extra %}{% endblock %}
+</head>
+
+<body>
+
+  <!-- TOPBAR -->
+  <header class="hmv-topbar">
+    <div class="hmv-topbar-inner">
+
+      <!-- Brand -->
+      <a class="hmv-brand" href="{{ url_for('dashboard') }}">
+        <img
+          class="hmv-logo"
+          src="{{ url_for('static', filename='branding/logo_hmv.png') }}"
+          alt="HMV"
+        >
+        <span class="hmv-brand-text">
+          <span class="hmv-brand-title">HMV Digital</span>
+          <span class="hmv-brand-subtitle">Inventario & Farmacia</span>
+        </span>
+      </a>
+
+      <!-- Acciones / navegación -->
+      <div class="hmv-topbar-actions">
+        <a class="btn-hmv-outline {% if request.endpoint == 'dashboard' %}is-active{% endif %}"
+           href="{{ url_for('dashboard') }}">Dashboard</a>
+
+        <a class="btn-hmv-outline {% if request.endpoint in ['productos','agregar','editar'] %}is-active{% endif %}"
+           href="{{ url_for('productos') }}">Productos</a>
+
+        <a class="btn-hmv-outline {% if request.endpoint in ['movimientos','nuevo_movimiento'] %}is-active{% endif %}"
+           href="{{ url_for('movimientos') }}">Movimientos</a>
+
+        <a class="btn-hmv-outline {% if request.endpoint in ['farmacia_pendientes','farmacia_pendientes_nuevo','farmacia_pendiente_detalle'] %}is-active{% endif %}"
+           href="{{ url_for('farmacia_pendientes') }}">Farmacia</a>
+
+        <a class="btn-hmv" href="{{ url_for('agregar') }}">+ Agregar</a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Contenido -->
+  <main class="hmv-container">
+    <div style="max-width:1140px;margin:18px auto 28px;padding:0 12px;">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

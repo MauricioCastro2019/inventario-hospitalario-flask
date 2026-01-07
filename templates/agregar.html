@@ -1,285 +1,260 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Agregar Producto | Hospital Médica Vida</title>
+{% extends "base.html" %}
+{% block title %}Agregar producto | HMV{% endblock %}
 
-    <!-- Bootstrap (puedes dejarlo; theme.css se encarga del look final) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+{% block content %}
 
-    <!-- Tema HMV -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
-</head>
+<section class="hmv-card" style="margin-top:16px;">
+  <div class="hmv-card-header">
+    <div>
+      <div class="hmv-title" style="font-size:22px;">Agregar producto</div>
+      <div class="hmv-muted" style="margin-top:4px;">
+        Captura datos y guarda. El sistema calcula piezas y precio sugerido.
+      </div>
+    </div>
 
-<body>
+    <div class="hmv-actions">
+      <a href="{{ url_for('productos') }}" class="hmv-btn-outline">Cancelar</a>
+      <button type="submit" form="form-agregar" class="hmv-btn-primary">Guardar</button>
+    </div>
+  </div>
 
-    <!-- TOPBAR HMV -->
-    <header class="hmv-topbar">
-        <div class="hmv-topbar-inner">
-            <div class="hmv-brand">
-                <img src="{{ url_for('static', filename='branding/logo_hmv.png') }}" alt="Hospital Médica Vida" class="hmv-logo">
-                <div class="hmv-brand-text">
-                    <div class="hmv-brand-title">Hospital Médica Vida</div>
-                    <div class="hmv-brand-subtitle">Inventario • Compras • Control</div>
-                </div>
-            </div>
+  <div class="hmv-card-body">
+    <form id="form-agregar" method="post" enctype="multipart/form-data">
 
-            <div class="hmv-topbar-actions">
-                <a href="{{ url_for('productos') }}" class="btn hmv-btn-outline">← Volver</a>
-            </div>
+      <!-- Datos básicos -->
+      <div class="hmv-section">
+        <div class="hmv-section-title">Datos básicos</div>
+
+        <div class="hmv-form-grid hmv-cols-2">
+          <div class="hmv-field">
+            <label>Nombre</label>
+            <input type="text" name="nombre" required>
+          </div>
+
+          <div class="hmv-field">
+            <label>Código</label>
+            <input type="text" name="codigo" required>
+          </div>
         </div>
-    </header>
 
-    <!-- CONTENIDO -->
-    <main class="container hmv-container">
-        <div class="hmv-card mt-4">
-            <div class="hmv-card-header">
-                <div>
-                    <h1 class="hmv-title m-0">Agregar producto</h1>
-                    <div class="hmv-muted">Captura datos y guarda. El sistema calcula piezas y precio sugerido.</div>
-                </div>
-                <div class="d-flex gap-2">
-                    <a href="{{ url_for('productos') }}" class="btn hmv-btn-outline">Cancelar</a>
-                    <button type="submit" form="form-agregar" class="btn hmv-btn-primary">Guardar</button>
-                </div>
-            </div>
-
-            <div class="hmv-card-body">
-                <form id="form-agregar" method="post" enctype="multipart/form-data" class="pb-2">
-
-                    <!-- Básicos -->
-                    <div class="hmv-section">
-                        <div class="hmv-section-title">Datos básicos</div>
-
-                        <div class="row g-2">
-                            <div class="col-md-8">
-                                <label class="form-label">Nombre</label>
-                                <input type="text" name="nombre" class="form-control" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Código</label>
-                                <input type="text" name="codigo" class="form-control" required>
-                            </div>
-                        </div>
-
-                        <div class="mt-2">
-                            <label class="form-label">Descripción</label>
-                            <textarea name="descripcion" class="form-control" rows="2"></textarea>
-                        </div>
-
-                        <div class="row g-2 mt-1">
-                            <div class="col-md-6">
-                                <label class="form-label">Marca / Proveedor</label>
-                                <input type="text" name="proveedor" class="form-control" placeholder="Ej. Roche, Pisa, BD, etc.">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Lote</label>
-                                <input type="text" name="lote" class="form-control">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Categoría</label>
-                                <input type="text" name="categoria" class="form-control" placeholder="Ej. Curación, RX, etc.">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Unidades / Empaque -->
-                    <div class="hmv-section">
-                        <div class="hmv-section-title">Unidades y empaque</div>
-                        <div class="hmv-muted small mb-2">
-                            Tip: El sistema convierte a piezas. Ejemplo: 10 cajas × 50 pzas = 500 pzas.
-                        </div>
-
-                        <div class="row g-2">
-                            <div class="col-md-4">
-                                <label class="form-label">Unidad de uso / salida</label>
-                                <input type="text" name="unidad" class="form-control" placeholder="pza, frasco, caja..." required>
-                                <div class="form-text">Cómo lo usas o lo entregas normalmente.</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label">Unidad de compra (opcional)</label>
-                                <input type="text" name="unidad_compra" class="form-control" placeholder="caja, paquete, etc.">
-                                <div class="form-text">Cómo lo compras al proveedor.</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label">Piezas por unidad de compra</label>
-                                <input type="number" name="piezas_por_unidad" class="form-control" min="0" value="0" oninput="calcularPrecio()">
-                                <div class="form-text">Ej. si compras caja con 50, pon 50.</div>
-                            </div>
-                        </div>
-
-                        <div class="row g-2 mt-1">
-                            <div class="col-md-6">
-                                <label class="form-label">Cantidad (lo que estás registrando)</label>
-                                <input type="number" name="cantidad" id="cantidad" class="form-control" min="0" value="0" required oninput="calcularPrecio()">
-                                <div class="form-text">
-                                    Si pusiste piezas por unidad, aquí captura <b>cajas</b> (o unidades de compra).
-                                    Si no, se toma como <b>piezas</b>.
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Stock mínimo</label>
-                                <input type="number" name="stock_minimo" class="form-control" min="0" value="0" required>
-                                <div class="form-text">Alerta cuando stock sea igual o menor a este número.</div>
-                            </div>
-                        </div>
-
-                        <div class="hmv-callout mt-3">
-                            <div class="d-flex justify-content-between">
-                                <div class="fw-semibold">Equivalencia aproximada</div>
-                                <div class="hmv-muted small">solo visual (se confirma al guardar)</div>
-                            </div>
-                            <div class="mt-1">
-                                <span class="badge badge-hmv">Total piezas estimadas</span>
-                                <span class="fw-bold ms-2" id="preview_piezas">0</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Costos / precios -->
-                    <div class="hmv-section">
-                        <div class="hmv-section-title">Costos y precios</div>
-                        <div class="hmv-muted small mb-2">
-                            Precio sugerido = costo + 35% (y si activas IVA, se agrega 16%).
-                        </div>
-
-                        <div class="row g-2 align-items-end">
-                            <div class="col-md-4">
-                                <label class="form-label">Costo</label>
-                                <input type="number" name="costo" id="costo" class="form-control" step="0.01" min="0" oninput="calcularPrecio()" required>
-                            </div>
-
-                            <div class="col-md-4">
-                                <div class="form-check mt-4">
-                                    <input class="form-check-input" type="checkbox" name="aplica_iva" id="aplica_iva" onchange="calcularPrecio()">
-                                    <label class="form-check-label" for="aplica_iva">
-                                        Aplicar IVA (16%)
-                                    </label>
-                                </div>
-                                <div class="form-text">Si el precio de venta debe incluir IVA.</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label">Precio sugerido / final</label>
-                                <input type="number" name="precio" id="precio" class="form-control" step="0.01" min="0">
-                                <div class="form-text">Se llena automático, pero lo puedes ajustar.</div>
-                            </div>
-                        </div>
-
-                        <div class="hmv-callout mt-3">
-                            <div class="d-flex justify-content-between">
-                                <div class="fw-semibold">Resumen</div>
-                                <div class="hmv-muted small">cálculo en vivo</div>
-                            </div>
-                            <div class="mt-2 small">
-                                <div>Margen: <b>35%</b></div>
-                                <div>IVA: <b id="preview_iva">No</b></div>
-                                <div class="mt-2">
-                                    <span class="badge bg-success">Precio sugerido</span>
-                                    <span class="fw-bold ms-2" id="preview_precio">$0.00</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fechas / imagen -->
-                    <div class="hmv-section">
-                        <div class="hmv-section-title">Fechas e imagen</div>
-
-                        <div class="row g-2">
-                            <div class="col-md-6">
-                                <label class="form-label">Fecha de ingreso</label>
-                                <input type="date" name="fecha_ingreso" class="form-control">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Fecha de caducidad</label>
-                                <input type="date" name="fecha_caducidad" class="form-control">
-                            </div>
-                        </div>
-
-                        <div class="mt-2">
-                            <label class="form-label">Imagen</label>
-                            <input type="file" name="imagen" class="form-control">
-                        </div>
-                    </div>
-
-                    <!-- Acciones abajo (duplicadas a propósito para UX) -->
-                    <div class="d-flex gap-2 mt-3">
-                        <button type="submit" class="btn hmv-btn-primary">Guardar</button>
-                        <a href="{{ url_for('productos') }}" class="btn hmv-btn-outline">Cancelar</a>
-                    </div>
-                </form>
-            </div>
+        <div class="hmv-field" style="margin-top:12px;">
+          <label>Descripción</label>
+          <textarea name="descripcion" rows="2"></textarea>
         </div>
-    </main>
 
-    <script>
-        let precioManual = false;
+        <div class="hmv-form-grid hmv-cols-3" style="margin-top:12px;">
+          <div class="hmv-field">
+            <label>Marca / Proveedor</label>
+            <input type="text" name="proveedor" placeholder="Ej. Roche, Pisa, BD, etc.">
+          </div>
 
-        function calcularPrecio() {
-          // --- Precio ---
-          const costoEl = document.getElementById("costo");
-          const precioEl = document.getElementById("precio");
-          const aplicaIvaEl = document.getElementById("aplica_iva");
+          <div class="hmv-field">
+            <label>Lote</label>
+            <input type="text" name="lote">
+          </div>
 
-          const previewPrecio = document.getElementById("preview_precio");
-          const previewIva = document.getElementById("preview_iva");
+          <div class="hmv-field">
+            <label>Categoría</label>
+            <input type="text" name="categoria" placeholder="Ej. Curación, RX, etc.">
+          </div>
+        </div>
+      </div>
 
-          const costo = parseFloat(costoEl.value);
-          const aplicaIva = aplicaIvaEl.checked;
+      <!-- Unidades y empaque -->
+      <div class="hmv-section">
+        <div class="hmv-section-title">Unidades y empaque</div>
+        <div class="hmv-help" style="margin-bottom:10px;">
+          Tip: El sistema convierte a piezas. Ejemplo: 10 cajas × 50 pzas = 500 pzas.
+        </div>
 
-          // IVA preview siempre
-          previewIva.textContent = aplicaIva ? "Sí" : "No";
+        <div class="hmv-form-grid hmv-cols-3">
+          <div class="hmv-field">
+            <label>Unidad de uso / salida</label>
+            <input type="text" name="unidad" placeholder="pza, frasco, caja..." required>
+            <div class="hmv-help">Cómo lo usas o lo entregas normalmente.</div>
+          </div>
 
-          if (!isNaN(costo)) {
-            let sugerido = costo * 1.35;
-            if (aplicaIva) sugerido = sugerido * 1.16;
+          <div class="hmv-field">
+            <label>Unidad de compra (opcional)</label>
+            <input type="text" name="unidad_compra" placeholder="caja, paquete, etc.">
+            <div class="hmv-help">Cómo lo compras al proveedor.</div>
+          </div>
 
-            // Si NO lo tocaste manualmente, se actualiza siempre
-            if (!precioManual || precioEl.value.trim() === "") {
-              precioEl.value = sugerido.toFixed(2);
-              precioManual = false;
-            }
+          <div class="hmv-field">
+            <label>Piezas por unidad de compra</label>
+            <input type="number" name="piezas_por_unidad" min="0" value="0" oninput="calcularPrecio()">
+            <div class="hmv-help">Ej. si compras caja con 50, pon 50.</div>
+          </div>
+        </div>
 
-            previewPrecio.textContent = "$" + sugerido.toFixed(2);
-          } else {
-            previewPrecio.textContent = "$0.00";
-            previewIva.textContent = aplicaIva ? "Sí" : "No";
+        <div class="hmv-form-grid hmv-cols-2" style="margin-top:12px;">
+          <div class="hmv-field">
+            <label>Cantidad (lo que estás registrando)</label>
+            <input type="number" name="cantidad" id="cantidad" min="0" value="0" required oninput="calcularPrecio()">
+            <div class="hmv-help">
+              Si pusiste piezas por unidad, aquí captura <b>cajas</b> (o unidades de compra).
+              Si no, se toma como <b>piezas</b>.
+            </div>
+          </div>
 
-            // si el costo está vacío, limpia el precio
-            precioEl.value = "";
-            precioManual = false;
-          }
+          <div class="hmv-field">
+            <label>Stock mínimo</label>
+            <input type="number" name="stock_minimo" min="0" value="0" required>
+            <div class="hmv-help">Alerta cuando stock sea igual o menor a este número.</div>
+          </div>
+        </div>
 
-          // --- Piezas estimadas ---
-          const cant = parseInt(document.getElementById("cantidad").value || "0", 10);
-          const ppu = parseInt((document.querySelector('input[name="piezas_por_unidad"]').value || "0"), 10);
+        <div class="hmv-callout" style="margin-top:14px;">
+          <div class="hmv-row">
+            <div style="font-weight:900;">Equivalencia aproximada</div>
+            <div class="hmv-muted" style="font-size:12px;">solo visual (se confirma al guardar)</div>
+          </div>
 
-          let piezas = 0;
-          if (!isNaN(cant)) {
-            if (!isNaN(ppu) && ppu > 0) {
-              piezas = cant * ppu;
-            } else {
-              piezas = cant;
-            }
-          }
-          document.getElementById("preview_piezas").textContent = String(piezas);
-        }
+          <div style="margin-top:10px;">
+            <span class="badge-hmv">Total piezas estimadas</span>
+            <span style="font-weight:900; margin-left:8px;" id="preview_piezas">0</span>
+          </div>
+        </div>
+      </div>
 
-        window.addEventListener("DOMContentLoaded", () => {
-          calcularPrecio();
+      <!-- Costos y precios -->
+      <div class="hmv-section">
+        <div class="hmv-section-title">Costos y precios</div>
+        <div class="hmv-help" style="margin-bottom:10px;">
+          Precio sugerido = costo + 35% (y si activas IVA, se agrega 16%).
+        </div>
 
-          const precioEl = document.getElementById("precio");
-          precioEl.addEventListener("input", () => {
-            precioManual = precioEl.value.trim() !== "";
-          });
-        });
-      </script>
+        <div class="hmv-form-grid hmv-cols-3">
+          <div class="hmv-field">
+            <label>Costo</label>
+            <input type="number" name="costo" id="costo" step="0.01" min="0" oninput="calcularPrecio()" required>
+          </div>
 
-</body>
-</html>
+          <div class="hmv-field">
+            <label>IVA</label>
+            <div class="hmv-checkbox">
+              <input type="checkbox" name="aplica_iva" id="aplica_iva" onchange="calcularPrecio()">
+              <label for="aplica_iva" style="margin:0; font-weight:800;">Aplicar IVA (16%)</label>
+            </div>
+            <div class="hmv-help">Si el precio de venta debe incluir IVA.</div>
+          </div>
+
+          <div class="hmv-field">
+            <label>Precio sugerido / final</label>
+            <input type="number" name="precio" id="precio" step="0.01" min="0">
+            <div class="hmv-help">Se llena automático, pero lo puedes ajustar.</div>
+          </div>
+        </div>
+
+        <div class="hmv-callout" style="margin-top:14px;">
+          <div class="hmv-row">
+            <div style="font-weight:900;">Resumen</div>
+            <div class="hmv-muted" style="font-size:12px;">cálculo en vivo</div>
+          </div>
+
+          <div class="hmv-help" style="margin-top:10px;">
+            <div>Margen: <b>35%</b></div>
+            <div>IVA: <b id="preview_iva">No</b></div>
+            <div style="margin-top:10px;">
+              <span class="badge-hmv hmv-badge-success">Precio sugerido</span>
+              <span style="font-weight:900; margin-left:8px;" id="preview_precio">$0.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fechas e imagen -->
+      <div class="hmv-section">
+        <div class="hmv-section-title">Fechas e imagen</div>
+
+        <div class="hmv-form-grid hmv-cols-2">
+          <div class="hmv-field">
+            <label>Fecha de ingreso</label>
+            <input type="date" name="fecha_ingreso">
+          </div>
+
+          <div class="hmv-field">
+            <label>Fecha de caducidad</label>
+            <input type="date" name="fecha_caducidad">
+          </div>
+        </div>
+
+        <div class="hmv-field" style="margin-top:12px;">
+          <label>Imagen</label>
+          <input type="file" name="imagen">
+        </div>
+      </div>
+
+      <!-- Acciones abajo (UX) -->
+      <div class="hmv-actions" style="margin-top:14px;">
+        <button type="submit" class="hmv-btn-primary">Guardar</button>
+        <a href="{{ url_for('productos') }}" class="hmv-btn-outline">Cancelar</a>
+      </div>
+
+    </form>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let precioManual = false;
+
+  function calcularPrecio() {
+    // --- Precio ---
+    const costoEl = document.getElementById("costo");
+    const precioEl = document.getElementById("precio");
+    const aplicaIvaEl = document.getElementById("aplica_iva");
+
+    const previewPrecio = document.getElementById("preview_precio");
+    const previewIva = document.getElementById("preview_iva");
+
+    const costo = parseFloat(costoEl.value);
+    const aplicaIva = aplicaIvaEl.checked;
+
+    previewIva.textContent = aplicaIva ? "Sí" : "No";
+
+    if (!isNaN(costo)) {
+      let sugerido = costo * 1.35;
+      if (aplicaIva) sugerido = sugerido * 1.16;
+
+      if (!precioManual || precioEl.value.trim() === "") {
+        precioEl.value = sugerido.toFixed(2);
+        precioManual = false;
+      }
+
+      previewPrecio.textContent = "$" + sugerido.toFixed(2);
+    } else {
+      previewPrecio.textContent = "$0.00";
+      previewIva.textContent = aplicaIva ? "Sí" : "No";
+
+      precioEl.value = "";
+      precioManual = false;
+    }
+
+    // --- Piezas estimadas ---
+    const cant = parseInt(document.getElementById("cantidad").value || "0", 10);
+    const ppu = parseInt((document.querySelector('input[name="piezas_por_unidad"]').value || "0"), 10);
+
+    let piezas = 0;
+    if (!isNaN(cant)) {
+      if (!isNaN(ppu) && ppu > 0) {
+        piezas = cant * ppu;
+      } else {
+        piezas = cant;
+      }
+    }
+    document.getElementById("preview_piezas").textContent = String(piezas);
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    calcularPrecio();
+
+    const precioEl = document.getElementById("precio");
+    precioEl.addEventListener("input", () => {
+      precioManual = precioEl.value.trim() !== "";
+    });
+  });
+</script>
+{% endblock %}

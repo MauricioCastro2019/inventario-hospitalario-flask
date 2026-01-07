@@ -1,85 +1,119 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard | HMV</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
-</head>
+{% extends "base.html" %}
+{% block title %}Dashboard | HMV{% endblock %}
 
-<body>
-  <header style="max-width:1100px;margin:18px auto 8px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <img src="{{ url_for('static', filename='branding/logo_hmv.png') }}" alt="HMV" style="height:38px;">
+{% block content %}
+
+  <!-- HERO / RESUMEN -->
+  <section class="hmv-card" style="margin: 16px 0;">
+    <div class="hmv-card-header">
       <div>
-        <div style="font-weight:900;font-size:18px;">HMV DIGITAL</div>
-        <div style="opacity:.75;font-size:13px;">Panel principal de módulos</div>
+        <div class="hmv-title" style="font-size: 22px;">Dashboard</div>
+        <div class="hmv-muted" style="margin-top: 4px;">
+          Panel principal de módulos • HMV Digital
+        </div>
+      </div>
+
+      <div class="hmv-actions">
+        <a class="hmv-btn-outline" href="{{ url_for('productos') }}">📦 Productos</a>
+        <a class="hmv-btn-outline" href="{{ url_for('movimientos') }}">🔁 Movimientos</a>
+        <a class="hmv-btn-primary" href="{{ url_for('farmacia_pendientes') }}">🧾 Farmacia</a>
       </div>
     </div>
 
-    <nav style="display:flex;gap:10px;flex-wrap:wrap;">
-      <a href="{{ url_for('dashboard') }}" style="text-decoration:none;padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.08);background:#fff;">
-        🏠 Inicio
-      </a>
-    </nav>
-  </header>
+    <div class="hmv-card-body">
+      <!-- KPIs -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;">
 
-  <main style="max-width:1100px;margin:0 auto 28px;padding:0 14px;">
-    <!-- KPIs -->
-    <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:12px;">
-      <div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:14px;">
-        <div style="opacity:.7;font-size:12px;">Productos</div>
-        <div style="font-weight:900;font-size:22px;margin-top:6px;">{{ productos_count }}</div>
+        <div class="hmv-section" style="margin:0;">
+          <div class="hmv-muted" style="font-size:12px;">Productos</div>
+          <div style="font-weight:900; font-size:28px; margin-top:6px;">{{ productos_count }}</div>
+          <div class="hmv-muted" style="font-size:12px; margin-top:6px;">Registrados en inventario</div>
+        </div>
+
+        <div class="hmv-section" style="margin:0;">
+          <div class="hmv-muted" style="font-size:12px;">Movimientos</div>
+          <div style="font-weight:900; font-size:28px; margin-top:6px;">{{ movimientos_count }}</div>
+          <div class="hmv-muted" style="font-size:12px; margin-top:6px;">Entradas y salidas (piezas)</div>
+        </div>
+
+        <div class="hmv-section" style="margin:0;">
+          <div class="hmv-muted" style="font-size:12px;">Pendientes Farmacia</div>
+          <div style="font-weight:900; font-size:28px; margin-top:6px;">{{ pendientes_count }}</div>
+
+          <div class="hmv-muted" style="font-size:12px; margin-top:6px;">
+            Hoy:
+            <span class="badge-hmv" style="margin-left:6px;">{{ pendientes_hoy }}</span>
+          </div>
+
+          {% if pendientes_hoy|int > 0 %}
+            <div class="hmv-muted" style="font-size:12px; margin-top:8px;">
+              Hay evidencia registrada hoy.
+            </div>
+          {% else %}
+            <div class="hmv-muted" style="font-size:12px; margin-top:8px;">
+              Hoy aún no hay registro.
+            </div>
+          {% endif %}
+        </div>
+
       </div>
+    </div>
+  </section>
 
-      <div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:14px;">
-        <div style="opacity:.7;font-size:12px;">Movimientos</div>
-        <div style="font-weight:900;font-size:22px;margin-top:6px;">{{ movimientos_count }}</div>
+  <!-- MÓDULOS -->
+  <section class="hmv-card">
+    <div class="hmv-card-header">
+      <div>
+        <div class="hmv-title" style="font-size: 18px;">Módulos</div>
+        <div class="hmv-muted" style="margin-top: 4px;">
+          Accesos rápidos a las secciones principales
+        </div>
       </div>
+    </div>
 
-      <div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:14px;">
-        <div style="opacity:.7;font-size:12px;">Pendientes Farmacia</div>
-        <div style="font-weight:900;font-size:22px;margin-top:6px;">{{ pendientes_count }}</div>
-        <div style="opacity:.75;font-size:12px;margin-top:4px;">Hoy: <b>{{ pendientes_hoy }}</b></div>
-      </div>
-    </section>
+    <div class="hmv-card-body">
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px;">
 
-    <!-- Módulos -->
-    <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
-      <!-- Productos / Inventario -->
-      <a href="{{ url_for('productos') }}" style="text-decoration:none;color:inherit;">
-        <article style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:16px;">
-          <div style="font-weight:900;font-size:16px;">📦 Productos</div>
-          <div style="opacity:.75;font-size:13px;margin-top:6px;">Alta, edición, búsqueda y control base.</div>
-          <div style="margin-top:10px;opacity:.7;font-size:12px;">Abrir →</div>
+        <a href="{{ url_for('productos') }}" style="text-decoration:none; color:inherit;">
+          <article class="hmv-section hmv-module-card" style="margin:0;">
+            <div style="font-weight:900; font-size:16px;">📦 Productos</div>
+            <div class="hmv-muted" style="font-size:13px; margin-top:6px;">
+              Alta, edición, búsqueda y control base.
+            </div>
+            <div class="hmv-muted" style="font-size:12px; margin-top:10px;">Abrir →</div>
+          </article>
+        </a>
+
+        <a href="{{ url_for('movimientos') }}" style="text-decoration:none; color:inherit;">
+          <article class="hmv-section hmv-module-card" style="margin:0;">
+            <div style="font-weight:900; font-size:16px;">🔁 Entradas / Salidas</div>
+            <div class="hmv-muted" style="font-size:13px; margin-top:6px;">
+              Movimientos por producto (en piezas) con notas.
+            </div>
+            <div class="hmv-muted" style="font-size:12px; margin-top:10px;">Abrir →</div>
+          </article>
+        </a>
+
+        <a href="{{ url_for('farmacia_pendientes') }}" style="text-decoration:none; color:inherit;">
+          <article class="hmv-section hmv-module-card" style="margin:0;">
+            <div style="font-weight:900; font-size:16px;">🧾 Pendientes de Farmacia</div>
+            <div class="hmv-muted" style="font-size:13px; margin-top:6px;">
+              Registro diario por fotos (evidencia y trazabilidad).
+            </div>
+            <div class="hmv-muted" style="font-size:12px; margin-top:10px;">Abrir →</div>
+          </article>
+        </a>
+
+        <article class="hmv-section" style="margin:0; border-style:dashed;">
+          <div style="font-weight:900; font-size:16px;">🩺 Quirófano (próximamente)</div>
+          <div class="hmv-muted" style="font-size:13px; margin-top:6px;">
+            Material y medicamentos usados por cirugía.
+          </div>
+          <div class="hmv-muted" style="font-size:12px; margin-top:10px;">En construcción</div>
         </article>
-      </a>
 
-      <!-- Movimientos -->
-      <a href="{{ url_for('movimientos') }}" style="text-decoration:none;color:inherit;">
-        <article style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:16px;">
-          <div style="font-weight:900;font-size:16px;">🔁 Entradas / Salidas</div>
-          <div style="opacity:.75;font-size:13px;margin-top:6px;">Movimientos por producto, con notas.</div>
-          <div style="margin-top:10px;opacity:.7;font-size:12px;">Abrir →</div>
-        </article>
-      </a>
-
-      <!-- Pendientes -->
-      <a href="{{ url_for('farmacia_pendientes') }}" style="text-decoration:none;color:inherit;">
-        <article style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:16px;">
-          <div style="font-weight:900;font-size:16px;">🧾 Pendientes de Farmacia</div>
-          <div style="opacity:.75;font-size:13px;margin-top:6px;">Registro diario por fotos (evidencia).</div>
-          <div style="margin-top:10px;opacity:.7;font-size:12px;">Abrir →</div>
-        </article>
-      </a>
-
-      <!-- Próximamente -->
-      <div style="background:#fff;border:1px dashed rgba(0,0,0,.18);border-radius:16px;padding:16px;">
-        <div style="font-weight:900;font-size:16px;">🩺 Quirófano (próximamente)</div>
-        <div style="opacity:.75;font-size:13px;margin-top:6px;">Material y medicamentos usados por cirugía.</div>
-        <div style="margin-top:10px;opacity:.7;font-size:12px;">En construcción</div>
       </div>
-    </section>
-  </main>
-</body>
-</html>
+    </div>
+  </section>
+
+{% endblock %}

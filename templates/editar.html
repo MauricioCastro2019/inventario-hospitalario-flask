@@ -1,304 +1,276 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Editar Producto | Hospital Médica Vida</title>
+{% extends "base.html" %}
+{% block title %}Editar producto | HMV{% endblock %}
 
-    <!-- Bootstrap (puedes dejarlo) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+{% block content %}
+<div class="hmv-card" style="margin-top:16px;">
+  <div class="hmv-card-header">
+    <div>
+      <h1 class="hmv-title" style="margin:0;">Editar producto</h1>
+      <div class="hmv-muted">
+        Actualiza datos, costos y empaque. El sistema recalcula piezas y precio sugerido.
+      </div>
+    </div>
 
-    <!-- Tema HMV -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
-</head>
+    <div class="hmv-actions">
+      <a href="{{ url_for('productos') }}" class="hmv-btn-outline">Cancelar</a>
+      <button type="submit" form="form-editar" class="hmv-btn-primary">Actualizar</button>
+    </div>
+  </div>
 
-<body>
+  <div class="hmv-card-body">
+    <form id="form-editar" method="post" enctype="multipart/form-data">
 
-    <!-- TOPBAR HMV -->
-    <header class="hmv-topbar">
-        <div class="hmv-topbar-inner">
-            <div class="hmv-brand">
-                <img src="{{ url_for('static', filename='branding/logo_hmv.png') }}" alt="Hospital Médica Vida" class="hmv-logo">
-                <div class="hmv-brand-text">
-                    <div class="hmv-brand-title">Hospital Médica Vida</div>
-                    <div class="hmv-brand-subtitle">Inventario • Compras • Control</div>
-                </div>
-            </div>
+      <!-- Datos básicos -->
+      <div class="hmv-section">
+        <div class="hmv-section-title">Datos básicos</div>
 
-            <div class="hmv-topbar-actions">
-                <a href="{{ url_for('productos') }}" class="btn hmv-btn-outline">← Volver</a>
-            </div>
+        <div class="hmv-form-grid hmv-cols-2">
+          <div class="hmv-field">
+            <label>Nombre</label>
+            <input type="text" name="nombre" value="{{ producto.nombre }}" required>
+          </div>
+
+          <div class="hmv-field">
+            <label>Código</label>
+            <input type="text" name="codigo" value="{{ producto.codigo }}" required>
+          </div>
         </div>
-    </header>
 
-    <!-- CONTENIDO -->
-    <main class="container hmv-container">
-        <div class="hmv-card mt-4">
-            <div class="hmv-card-header">
-                <div>
-                    <h1 class="hmv-title m-0">Editar producto</h1>
-                    <div class="hmv-muted">
-                        Actualiza datos, costos y empaque. El sistema recalcula piezas y precio sugerido.
-                    </div>
-                </div>
-
-                <div class="d-flex gap-2">
-                    <a href="{{ url_for('productos') }}" class="btn hmv-btn-outline">Cancelar</a>
-                    <button type="submit" form="form-editar" class="btn hmv-btn-primary">Actualizar</button>
-                </div>
-            </div>
-
-            <div class="hmv-card-body">
-                <form id="form-editar" method="post" enctype="multipart/form-data" class="pb-2">
-
-                    <!-- Básicos -->
-                    <div class="hmv-section">
-                        <div class="hmv-section-title">Datos básicos</div>
-
-                        <div class="row g-2">
-                            <div class="col-md-8">
-                                <label class="form-label">Nombre</label>
-                                <input type="text" name="nombre" class="form-control" value="{{ producto.nombre }}" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Código</label>
-                                <input type="text" name="codigo" class="form-control" value="{{ producto.codigo }}" required>
-                            </div>
-                        </div>
-
-                        <div class="mt-2">
-                            <label class="form-label">Descripción</label>
-                            <textarea name="descripcion" class="form-control" rows="2">{{ producto.descripcion or '' }}</textarea>
-                        </div>
-
-                        <div class="row g-2 mt-1">
-                            <div class="col-md-6">
-                                <label class="form-label">Marca / Proveedor</label>
-                                <input type="text" name="proveedor" class="form-control" value="{{ producto.proveedor or '' }}">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Lote</label>
-                                <input type="text" name="lote" class="form-control" value="{{ producto.lote or '' }}">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Categoría</label>
-                                <input type="text" name="categoria" class="form-control" value="{{ producto.categoria or '' }}">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Unidades / Empaque -->
-                    <div class="hmv-section">
-                        <div class="hmv-section-title">Unidades y empaque</div>
-                        <div class="hmv-muted small mb-2">
-                            Tip: Si compras por caja y surtas por piezas, captura piezas por unidad para que el sistema convierta a pzas.
-                        </div>
-
-                        <div class="row g-2">
-                            <div class="col-md-4">
-                                <label class="form-label">Unidad de uso / salida</label>
-                                <input type="text" name="unidad" class="form-control" value="{{ producto.unidad or '' }}" required>
-                                <div class="form-text">Ej. pza, frasco, caja…</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label">Unidad de compra (opcional)</label>
-                                <input type="text" name="unidad_compra" class="form-control"
-                                       value="{{ producto.unidad_compra or '' }}" placeholder="caja, paquete, etc.">
-                                <div class="form-text">Cómo lo compras al proveedor.</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label">Piezas por unidad de compra</label>
-                                <input type="number" name="piezas_por_unidad" id="piezas_por_unidad" class="form-control" min="0"
-                                       value="{{ producto.piezas_por_unidad or 0 }}" oninput="calcularTodo()">
-                                <div class="form-text">Ej. caja con 50 → 50</div>
-                            </div>
-                        </div>
-
-                        <div class="row g-2 mt-1">
-                            <div class="col-md-6">
-                                <label class="form-label">Cantidad (lo que estás registrando)</label>
-                                <input type="number" name="cantidad" id="cantidad" class="form-control" min="0" required
-                                       value="{{ producto.cantidad or 0 }}" oninput="calcularTodo()">
-                                <div class="form-text">
-                                    Si pusiste piezas por unidad, aquí son <b>unidades de compra</b> (ej. cajas).
-                                    Si no, se toma como <b>piezas</b>.
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Stock mínimo</label>
-                                <input type="number" name="stock_minimo" class="form-control" min="0"
-                                       value="{{ producto.stock_minimo or 0 }}" required>
-                                <div class="form-text">Se marcará “BAJO” cuando stock sea igual o menor a este número.</div>
-                            </div>
-                        </div>
-
-                        <div class="hmv-callout mt-3">
-                            <div class="d-flex justify-content-between">
-                                <div class="fw-semibold">Equivalencia aproximada</div>
-                                <div class="hmv-muted small">solo visual</div>
-                            </div>
-                            <div class="mt-1">
-                                <span class="badge badge-hmv">Total piezas estimadas</span>
-                                <span class="fw-bold ms-2" id="preview_piezas">0</span>
-                                {% if producto.cantidad_piezas is not none %}
-                                    <span class="hmv-muted ms-2">(en BD: {{ producto.cantidad_piezas }} pzas)</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Costos / precios -->
-                    <div class="hmv-section">
-                        <div class="hmv-section-title">Costos y precios</div>
-                        <div class="hmv-muted small mb-2">
-                            Precio sugerido = costo + 35% (y si activas IVA, se agrega 16%).
-                        </div>
-
-                        <div class="row g-2 align-items-end">
-                            <div class="col-md-4">
-                                <label class="form-label">Costo</label>
-                                <input type="number" name="costo" id="costo" class="form-control" step="0.01" min="0"
-                                       value="{{ producto.costo or 0 }}" oninput="calcularTodo()" required>
-                            </div>
-
-                            <div class="col-md-4">
-                                <div class="form-check mt-4">
-                                    <input class="form-check-input" type="checkbox" name="aplica_iva" id="aplica_iva"
-                                           onchange="calcularTodo()"
-                                           {% if producto.aplica_iva %}checked{% endif %}>
-                                    <label class="form-check-label" for="aplica_iva">
-                                        Aplicar IVA (16%)
-                                    </label>
-                                </div>
-                                <div class="form-text">Si el precio de venta debe incluir IVA.</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label">Precio sugerido / final</label>
-                                <input type="number" name="precio" id="precio" class="form-control" step="0.01" min="0"
-                                       value="{{ producto.precio or 0 }}">
-                                <div class="form-text">Se llena automático, pero lo puedes ajustar.</div>
-                            </div>
-                        </div>
-
-                        <div class="hmv-callout mt-3">
-                            <div class="d-flex justify-content-between">
-                                <div class="fw-semibold">Resumen</div>
-                                <div class="hmv-muted small">cálculo en vivo</div>
-                            </div>
-                            <div class="mt-2 small">
-                                <div>Margen: <b>35%</b></div>
-                                <div>IVA: <b id="preview_iva">No</b></div>
-                                <div class="mt-2">
-                                    <span class="badge bg-success">Precio sugerido</span>
-                                    <span class="fw-bold ms-2" id="preview_precio">$0.00</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fechas / imagen -->
-                    <div class="hmv-section">
-                        <div class="hmv-section-title">Fechas e imagen</div>
-
-                        <div class="row g-2">
-                            <div class="col-md-6">
-                                <label class="form-label">Fecha de ingreso</label>
-                                <input type="date" name="fecha_ingreso" class="form-control"
-                                       value="{{ producto.fecha_ingreso.strftime('%Y-%m-%d') if producto.fecha_ingreso else '' }}">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Fecha de caducidad</label>
-                                <input type="date" name="fecha_caducidad" class="form-control"
-                                       value="{{ producto.caducidad.strftime('%Y-%m-%d') if producto.caducidad else '' }}">
-                            </div>
-                        </div>
-
-                        <div class="mt-2">
-                            <label class="form-label">Imagen</label>
-                            <input type="file" name="imagen" class="form-control">
-                            {% if producto.imagen %}
-                                <div class="form-text">
-                                    Imagen actual: <strong>{{ producto.imagen }}</strong>
-                                </div>
-                                <div class="mt-2">
-                                    <img src="{{ url_for('static', filename='uploads/' + producto.imagen) }}"
-                                         alt="Imagen del producto" class="img-thumbnail" style="max-width: 180px;">
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- Acciones abajo -->
-                    <div class="d-flex gap-2 mt-3">
-                        <button type="submit" class="btn hmv-btn-primary">Actualizar</button>
-                        <a href="{{ url_for('productos') }}" class="btn hmv-btn-outline">Cancelar</a>
-                    </div>
-                </form>
-            </div>
+        <div class="hmv-field" style="margin-top:12px;">
+          <label>Descripción</label>
+          <textarea name="descripcion" rows="2">{{ producto.descripcion or '' }}</textarea>
         </div>
-    </main>
 
-    <script>
-        let precioManual = false;
+        <div class="hmv-form-grid hmv-cols-3" style="margin-top:12px;">
+          <div class="hmv-field">
+            <label>Marca / Proveedor</label>
+            <input type="text" name="proveedor" value="{{ producto.proveedor or '' }}">
+          </div>
 
-        function calcularPrecio() {
-          const costoEl = document.getElementById("costo");
-          const precioEl = document.getElementById("precio");
-          const aplicaIvaEl = document.getElementById("aplica_iva");
+          <div class="hmv-field">
+            <label>Lote</label>
+            <input type="text" name="lote" value="{{ producto.lote or '' }}">
+          </div>
 
-          const previewPrecio = document.getElementById("preview_precio");
-          const previewIva = document.getElementById("preview_iva");
+          <div class="hmv-field">
+            <label>Categoría</label>
+            <input type="text" name="categoria" value="{{ producto.categoria or '' }}">
+          </div>
+        </div>
+      </div>
 
-          const costo = parseFloat(costoEl.value);
-          const aplicaIva = aplicaIvaEl.checked;
+      <!-- Unidades y empaque -->
+      <div class="hmv-section">
+        <div class="hmv-section-title">Unidades y empaque</div>
+        <div class="hmv-muted" style="font-size:12px; margin-bottom:10px;">
+          Tip: Si compras por caja y surtas por piezas, captura piezas por unidad para que el sistema convierta a pzas.
+        </div>
 
-          previewIva.textContent = aplicaIva ? "Sí" : "No";
+        <div class="hmv-form-grid hmv-cols-3">
+          <div class="hmv-field">
+            <label>Unidad de uso / salida</label>
+            <input type="text" name="unidad" value="{{ producto.unidad or '' }}" required>
+            <div class="hmv-help">Ej. pza, frasco, caja…</div>
+          </div>
 
-          if (!isNaN(costo)) {
-            let sugerido = costo * 1.35;
-            if (aplicaIva) sugerido = sugerido * 1.16;
+          <div class="hmv-field">
+            <label>Unidad de compra (opcional)</label>
+            <input type="text" name="unidad_compra" value="{{ producto.unidad_compra or '' }}" placeholder="caja, paquete, etc.">
+            <div class="hmv-help">Cómo lo compras al proveedor.</div>
+          </div>
 
-            if (!precioManual || precioEl.value.trim() === "") {
-              precioEl.value = sugerido.toFixed(2);
-              precioManual = false;
-            }
+          <div class="hmv-field">
+            <label>Piezas por unidad de compra</label>
+            <input type="number" name="piezas_por_unidad" id="piezas_por_unidad"
+                   min="0" value="{{ producto.piezas_por_unidad or 0 }}" oninput="calcularTodo()">
+            <div class="hmv-help">Ej. caja con 50 → 50</div>
+          </div>
+        </div>
 
-            previewPrecio.textContent = "$" + sugerido.toFixed(2);
-          } else {
-            previewPrecio.textContent = "$0.00";
-            if (precioEl.value.trim() === "") precioManual = false;
-          }
+        <div class="hmv-form-grid hmv-cols-2" style="margin-top:12px;">
+          <div class="hmv-field">
+            <label>Cantidad (lo que estás registrando)</label>
+            <input type="number" name="cantidad" id="cantidad" min="0" required
+                   value="{{ producto.cantidad or 0 }}" oninput="calcularTodo()">
+            <div class="hmv-help">
+              Si pusiste piezas por unidad, aquí son <b>unidades de compra</b> (ej. cajas). Si no, se toma como <b>piezas</b>.
+            </div>
+          </div>
 
-          // Piezas
-          const cant = parseInt(document.getElementById("cantidad").value || "0", 10);
-          const ppu = parseInt((document.getElementById("piezas_por_unidad").value || "0"), 10);
+          <div class="hmv-field">
+            <label>Stock mínimo</label>
+            <input type="number" name="stock_minimo" min="0" value="{{ producto.stock_minimo or 0 }}" required>
+            <div class="hmv-help">Se marcará “BAJO” cuando el stock sea igual o menor a este número.</div>
+          </div>
+        </div>
 
-          let piezas = 0;
-          if (!isNaN(cant)) {
-            piezas = (!isNaN(ppu) && ppu > 0) ? cant * ppu : cant;
-          }
-          document.getElementById("preview_piezas").textContent = String(piezas);
-        }
+        <div class="hmv-callout" style="margin-top:12px;">
+          <div class="hmv-row">
+            <div style="font-weight:900;">Equivalencia aproximada</div>
+            <div class="hmv-muted" style="font-size:12px;">solo visual</div>
+          </div>
 
-        // Alias porque tu HTML llama calcularTodo()
-        function calcularTodo() {
-          calcularPrecio();
-        }
+          <div style="margin-top:10px;">
+            <span class="badge-hmv">Total piezas estimadas</span>
+            <span style="font-weight:900; margin-left:8px;" id="preview_piezas">0</span>
+            {% if producto.cantidad_piezas is not none %}
+              <span class="hmv-muted" style="margin-left:8px;">(en BD: {{ producto.cantidad_piezas }} pzas)</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
 
-        window.addEventListener("DOMContentLoaded", () => {
-          calcularPrecio();
+      <!-- Costos y precios -->
+      <div class="hmv-section">
+        <div class="hmv-section-title">Costos y precios</div>
+        <div class="hmv-muted" style="font-size:12px; margin-bottom:10px;">
+          Precio sugerido = costo + 35% (y si activas IVA, se agrega 16%).
+        </div>
 
-          const precioEl = document.getElementById("precio");
-          precioEl.addEventListener("input", () => {
-            precioManual = precioEl.value.trim() !== "";
-          });
-        });
-      </script>
+        <div class="hmv-form-grid hmv-cols-3">
+          <div class="hmv-field">
+            <label>Costo</label>
+            <input type="number" name="costo" id="costo" step="0.01" min="0"
+                   value="{{ producto.costo if producto.costo is not none else '' }}" oninput="calcularTodo()">
+          </div>
 
-</body>
-</html>
+          <div class="hmv-field">
+            <label>IVA</label>
+            <div class="hmv-checkbox">
+              <input type="checkbox" name="aplica_iva" id="aplica_iva" onchange="calcularTodo()"
+                     {% if producto.aplica_iva %}checked{% endif %}>
+              <div>
+                <div style="font-weight:900;">Aplicar IVA (16%)</div>
+                <div class="hmv-muted" style="font-size:12px;">Si el precio final debe incluir IVA.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hmv-field">
+            <label>Precio sugerido / final</label>
+            <input type="number" name="precio" id="precio" step="0.01" min="0"
+                   value="{{ producto.precio if producto.precio is not none else '' }}">
+            <div class="hmv-help">Se llena automático, pero lo puedes ajustar.</div>
+          </div>
+        </div>
+
+        <div class="hmv-callout" style="margin-top:12px;">
+          <div class="hmv-row">
+            <div style="font-weight:900;">Resumen</div>
+            <div class="hmv-muted" style="font-size:12px;">cálculo en vivo</div>
+          </div>
+
+          <div style="margin-top:10px; font-size:13px;">
+            <div>Margen: <b>35%</b></div>
+            <div>IVA: <b id="preview_iva">No</b></div>
+
+            <div style="margin-top:10px;">
+              <span class="badge-hmv hmv-badge-success">Precio sugerido</span>
+              <span style="font-weight:900; margin-left:8px;" id="preview_precio">$0.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fechas e imagen -->
+      <div class="hmv-section">
+        <div class="hmv-section-title">Fechas e imagen</div>
+
+        <div class="hmv-form-grid hmv-cols-2">
+          <div class="hmv-field">
+            <label>Fecha de ingreso</label>
+            <input type="date" name="fecha_ingreso"
+                   value="{{ producto.fecha_ingreso.strftime('%Y-%m-%d') if producto.fecha_ingreso else '' }}">
+          </div>
+
+          <div class="hmv-field">
+            <label>Fecha de caducidad</label>
+            <input type="date" name="fecha_caducidad"
+                   value="{{ producto.caducidad.strftime('%Y-%m-%d') if producto.caducidad else '' }}">
+          </div>
+        </div>
+
+        <div class="hmv-divider"></div>
+
+        <div class="hmv-field">
+          <label>Imagen</label>
+          <input type="file" name="imagen">
+          {% if producto.imagen %}
+            <div class="hmv-help">Imagen actual: <b>{{ producto.imagen }}</b></div>
+            <div style="margin-top:10px;">
+              <img src="{{ url_for('static', filename='uploads/' + producto.imagen) }}"
+                   alt="Imagen del producto" class="hmv-thumb" style="width:180px;height:auto;">
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Acciones abajo -->
+      <div class="hmv-actions" style="margin-top:12px;">
+        <button type="submit" class="hmv-btn-primary">Actualizar</button>
+        <a href="{{ url_for('productos') }}" class="hmv-btn-outline">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  let precioManual = false;
+
+  function calcularPrecio() {
+    const costoEl = document.getElementById("costo");
+    const precioEl = document.getElementById("precio");
+    const aplicaIvaEl = document.getElementById("aplica_iva");
+
+    const previewPrecio = document.getElementById("preview_precio");
+    const previewIva = document.getElementById("preview_iva");
+
+    const costoRaw = (costoEl.value || "").trim();
+    const costo = parseFloat(costoRaw);
+    const aplicaIva = aplicaIvaEl.checked;
+
+    previewIva.textContent = aplicaIva ? "Sí" : "No";
+
+    // Si costo vacío: limpia preview y no fuerzas precio
+    if (costoRaw === "" || isNaN(costo)) {
+      previewPrecio.textContent = "$0.00";
+      if (!precioManual) precioEl.value = "";
+    } else {
+      let sugerido = costo * 1.35;
+      if (aplicaIva) sugerido = sugerido * 1.16;
+
+      if (!precioManual || precioEl.value.trim() === "") {
+        precioEl.value = sugerido.toFixed(2);
+        precioManual = false;
+      }
+
+      previewPrecio.textContent = "$" + sugerido.toFixed(2);
+    }
+  }
+
+  function calcularPiezas() {
+    const cant = parseInt((document.getElementById("cantidad").value || "0"), 10);
+    const ppu = parseInt((document.getElementById("piezas_por_unidad").value || "0"), 10);
+
+    let piezas = 0;
+    if (!isNaN(cant)) {
+      piezas = (!isNaN(ppu) && ppu > 0) ? cant * ppu : cant;
+    }
+    document.getElementById("preview_piezas").textContent = String(piezas);
+  }
+
+  function calcularTodo(){
+    calcularPrecio();
+    calcularPiezas();
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    calcularTodo();
+
+    const precioEl = document.getElementById("precio");
+    precioEl.addEventListener("input", () => {
+      precioManual = precioEl.value.trim() !== "";
+    });
+  });
+</script>
+{% endblock %}

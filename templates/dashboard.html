@@ -18,7 +18,7 @@
     </div>
 
     <nav style="display:flex;gap:10px;flex-wrap:wrap;">
-      <a href="{{ url_for('index') }}" style="text-decoration:none;padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.08);background:#fff;">
+      <a href="{{ url_for('dashboard') }}" style="text-decoration:none;padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.08);background:#fff;">
         🏠 Inicio
       </a>
     </nav>
@@ -46,7 +46,8 @@
 
     <!-- Módulos -->
     <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
-      <a href="{{ url_for('index') }}" style="text-decoration:none;color:inherit;">
+      <!-- Productos / Inventario -->
+      <a href="{{ url_for('productos') }}" style="text-decoration:none;color:inherit;">
         <article style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:16px;">
           <div style="font-weight:900;font-size:16px;">📦 Productos</div>
           <div style="opacity:.75;font-size:13px;margin-top:6px;">Alta, edición, búsqueda y control base.</div>
@@ -54,6 +55,7 @@
         </article>
       </a>
 
+      <!-- Movimientos -->
       <a href="{{ url_for('movimientos') }}" style="text-decoration:none;color:inherit;">
         <article style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:16px;">
           <div style="font-weight:900;font-size:16px;">🔁 Entradas / Salidas</div>
@@ -62,6 +64,7 @@
         </article>
       </a>
 
+      <!-- Pendientes -->
       <a href="{{ url_for('farmacia_pendientes') }}" style="text-decoration:none;color:inherit;">
         <article style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:16px;">
           <div style="font-weight:900;font-size:16px;">🧾 Pendientes de Farmacia</div>
@@ -70,6 +73,7 @@
         </article>
       </a>
 
+      <!-- Próximamente -->
       <div style="background:#fff;border:1px dashed rgba(0,0,0,.18);border-radius:16px;padding:16px;">
         <div style="font-weight:900;font-size:16px;">🩺 Quirófano (próximamente)</div>
         <div style="opacity:.75;font-size:13px;margin-top:6px;">Material y medicamentos usados por cirugía.</div>

@@ -14,7 +14,7 @@
   <!-- TOPBAR HMV -->
   <header class="hmv-topbar">
     <div class="hmv-topbar-inner">
-      <a class="hmv-brand" href="{{ url_for('index') }}">
+      <a class="hmv-brand" href="{{ url_for('dashboard') }}">
         <img src="{{ url_for('static', filename='branding/logo_hmv.png') }}" alt="Hospital Médica Vida" class="hmv-logo">
         <div class="hmv-brand-text">
           <div class="hmv-brand-title">Hospital Médica Vida</div>
@@ -47,7 +47,7 @@
                    placeholder="Buscar por nombre, código o categoría..."
                    value="{{ request.args.get('q', '') }}">
             <button type="submit" class="btn hmv-btn-outline">Buscar</button>
-            <a href="{{ url_for('index') }}" class="btn hmv-btn-outline">Limpiar</a>
+            <a href="{{ url_for('dashboard') }}" class="btn hmv-btn-outline">Limpiar</a>
           </div>
         </form>
       </div>

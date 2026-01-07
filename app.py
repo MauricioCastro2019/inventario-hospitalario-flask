@@ -259,14 +259,14 @@ with app.app_context():
 # RUTAS
 # ---------------------------
 
-from flask import redirect, url_for
 
 @app.route("/")
 def home():
+    # Home = Dashboard
     return redirect(url_for("dashboard"))
 
-@app.route("/")
-def index():
+@app.route("/productos")
+def productos():
     q = request.args.get("q")
     if q:
         productos = Producto.query.filter(
@@ -276,8 +276,13 @@ def index():
         ).all()
     else:
         productos = Producto.query.order_by(Producto.ultima_modificacion.desc()).all()
+
     return render_template("index.html", productos=productos)
 
+# (Opcional pero recomendado) si alguien entra a /index por hábito:
+@app.route("/index")
+def index_redirect():
+    return redirect(url_for("productos"))
 
 @app.route("/agregar", methods=["GET", "POST"])
 def agregar():
@@ -352,7 +357,7 @@ def agregar():
 
         db.session.add(producto)
         db.session.commit()
-        return redirect(url_for("index"))
+        return redirect(url_for("productos"))
 
     return render_template("agregar.html")
 
@@ -414,7 +419,7 @@ def editar(id):
             producto.imagen = filename
 
         db.session.commit()
-        return redirect(url_for("index"))
+        return redirect(url_for("productos"))
 
     return render_template("editar.html", producto=producto)
 

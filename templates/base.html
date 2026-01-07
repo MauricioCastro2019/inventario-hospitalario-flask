@@ -25,12 +25,12 @@
         >
         <span class="hmv-brand-text">
           <span class="hmv-brand-title">HMV Digital</span>
-          <span class="hmv-brand-subtitle">Inventario & Farmacia</span>
+          <span class="hmv-brand-subtitle">{{ page_subtitle or "Gestión Hospitalaria" }}</span>
         </span>
       </a>
 
       <!-- Acciones / navegación -->
-      <div class="hmv-topbar-actions">
+      <nav class="hmv-topbar-actions" aria-label="Navegación principal">
         <a class="btn-hmv-outline {% if request.endpoint == 'dashboard' %}is-active{% endif %}"
            href="{{ url_for('dashboard') }}">Dashboard</a>
 
@@ -43,8 +43,9 @@
         <a class="btn-hmv-outline {% if request.endpoint in ['farmacia_pendientes','farmacia_pendientes_nuevo','farmacia_pendiente_detalle'] %}is-active{% endif %}"
            href="{{ url_for('farmacia_pendientes') }}">Farmacia</a>
 
-        <a class="btn-hmv" href="{{ url_for('agregar') }}">+ Agregar</a>
-      </div>
+        <a class="btn-hmv hmv-cta"
+           href="{{ url_for('agregar') }}">+ Agregar</a>
+      </nav>
 
     </div>
   </header>

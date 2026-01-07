@@ -3,16 +3,58 @@
 
 {% block content %}
 
-  <!-- HERO / RESUMEN -->
-  <section class="hmv-card" style="margin: 16px 0;">
+<section class="dash-wrap">
+
+  <!-- HEAD: Hora + Fecha + Acciones rápidas -->
+  <div class="dash-head">
+    <div class="dash-time">
+      <div class="dash-clock" id="clock">--:--</div>
+      <div class="dash-date" id="date">--</div>
+      <div class="dash-muted">Panel principal • HMV Digital</div>
+    </div>
+
+    <div class="dash-quick">
+      <!-- Rutas aún no existen: dejamos # para no romper -->
+      <a class="hmv-btn-primary" href="#" style="text-decoration:none;">+ Programar cirugía</a>
+      <a class="hmv-btn-outline" href="#" style="text-decoration:none;">Calendario / Historial</a>
+    </div>
+  </div>
+
+  <!-- Próxima cirugía -->
+  <section class="hmv-card">
     <div class="hmv-card-header">
       <div>
-        <div class="hmv-title" style="font-size: 22px;">Dashboard</div>
-        <div class="hmv-muted" style="margin-top: 4px;">
-          Panel principal de módulos • HMV Digital
-        </div>
+        <div class="hmv-title" style="font-size: 18px;">Próxima cirugía</div>
+        <div class="hmv-muted" style="margin-top: 4px;">Lo siguiente del día (agenda operativa)</div>
       </div>
+    </div>
 
+    <div class="hmv-card-body">
+      {% if proxima_cirugia %}
+        <div class="dash-next-card">
+          <div class="dash-next-main">
+            <div class="dash-next-name">{{ proxima_cirugia.tipo }}</div>
+            <div class="dash-next-meta">
+              {{ proxima_cirugia.hora }} · Qx {{ proxima_cirugia.quirofano }} · {{ proxima_cirugia.medico }}
+            </div>
+          </div>
+          <a class="hmv-btn-outline" href="#" style="text-decoration:none;">Ver</a>
+        </div>
+      {% else %}
+        <div class="dash-next-empty">
+          No hay cirugías programadas para hoy (aún).
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- KPIs -->
+  <section class="hmv-card">
+    <div class="hmv-card-header">
+      <div>
+        <div class="hmv-title" style="font-size: 18px;">Resumen</div>
+        <div class="hmv-muted" style="margin-top: 4px;">Indicadores rápidos del sistema</div>
+      </div>
       <div class="hmv-actions">
         <a class="hmv-btn-outline" href="{{ url_for('productos') }}">📦 Productos</a>
         <a class="hmv-btn-outline" href="{{ url_for('movimientos') }}">🔁 Movimientos</a>
@@ -21,38 +63,31 @@
     </div>
 
     <div class="hmv-card-body">
-      <!-- KPIs -->
-      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;">
+      <div class="dash-stats">
 
-        <div class="hmv-section" style="margin:0;">
-          <div class="hmv-muted" style="font-size:12px;">Productos</div>
-          <div style="font-weight:900; font-size:28px; margin-top:6px;">{{ productos_count }}</div>
-          <div class="hmv-muted" style="font-size:12px; margin-top:6px;">Registrados en inventario</div>
+        <div class="dash-stat">
+          <div class="dash-stat-label">Productos</div>
+          <div class="dash-stat-value">{{ productos_count }}</div>
+          <div class="dash-stat-sub">Registrados en inventario</div>
         </div>
 
-        <div class="hmv-section" style="margin:0;">
-          <div class="hmv-muted" style="font-size:12px;">Movimientos</div>
-          <div style="font-weight:900; font-size:28px; margin-top:6px;">{{ movimientos_count }}</div>
-          <div class="hmv-muted" style="font-size:12px; margin-top:6px;">Entradas y salidas (piezas)</div>
+        <div class="dash-stat">
+          <div class="dash-stat-label">Movimientos</div>
+          <div class="dash-stat-value">{{ movimientos_count }}</div>
+          <div class="dash-stat-sub">Entradas y salidas (piezas)</div>
         </div>
 
-        <div class="hmv-section" style="margin:0;">
-          <div class="hmv-muted" style="font-size:12px;">Pendientes Farmacia</div>
-          <div style="font-weight:900; font-size:28px; margin-top:6px;">{{ pendientes_count }}</div>
-
-          <div class="hmv-muted" style="font-size:12px; margin-top:6px;">
-            Hoy:
-            <span class="badge-hmv" style="margin-left:6px;">{{ pendientes_hoy }}</span>
+        <div class="dash-stat">
+          <div class="dash-stat-label">Pendientes Farmacia</div>
+          <div class="dash-stat-value">{{ pendientes_count }}</div>
+          <div class="dash-stat-sub">
+            Hoy: <span class="badge-hmv" style="margin-left:6px;">{{ pendientes_hoy }}</span>
           </div>
 
           {% if pendientes_hoy|int > 0 %}
-            <div class="hmv-muted" style="font-size:12px; margin-top:8px;">
-              Hay evidencia registrada hoy.
-            </div>
+            <div class="dash-stat-hint">Hay evidencia registrada hoy.</div>
           {% else %}
-            <div class="hmv-muted" style="font-size:12px; margin-top:8px;">
-              Hoy aún no hay registro.
-            </div>
+            <div class="dash-stat-hint">Hoy aún no hay registro.</div>
           {% endif %}
         </div>
 
@@ -65,55 +100,88 @@
     <div class="hmv-card-header">
       <div>
         <div class="hmv-title" style="font-size: 18px;">Módulos</div>
-        <div class="hmv-muted" style="margin-top: 4px;">
-          Accesos rápidos a las secciones principales
-        </div>
+        <div class="hmv-muted" style="margin-top: 4px;">Accesos rápidos</div>
       </div>
     </div>
 
     <div class="hmv-card-body">
-      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px;">
+      <div class="dash-grid">
 
-        <a href="{{ url_for('productos') }}" style="text-decoration:none; color:inherit;">
-          <article class="hmv-section hmv-module-card" style="margin:0;">
-            <div style="font-weight:900; font-size:16px;">📦 Productos</div>
-            <div class="hmv-muted" style="font-size:13px; margin-top:6px;">
-              Alta, edición, búsqueda y control base.
-            </div>
-            <div class="hmv-muted" style="font-size:12px; margin-top:10px;">Abrir →</div>
-          </article>
+        <!-- Cirugías -->
+        <a href="#" class="dash-card">
+          <div class="dash-card-title">🗓️ Programar cirugías</div>
+          <div class="dash-card-desc">Registrar programación del día</div>
+          <div class="dash-card-foot">Abrir →</div>
         </a>
 
-        <a href="{{ url_for('movimientos') }}" style="text-decoration:none; color:inherit;">
-          <article class="hmv-section hmv-module-card" style="margin:0;">
-            <div style="font-weight:900; font-size:16px;">🔁 Entradas / Salidas</div>
-            <div class="hmv-muted" style="font-size:13px; margin-top:6px;">
-              Movimientos por producto (en piezas) con notas.
-            </div>
-            <div class="hmv-muted" style="font-size:12px; margin-top:10px;">Abrir →</div>
-          </article>
+        <a href="#" class="dash-card">
+          <div class="dash-card-title">📆 Calendario / Historial</div>
+          <div class="dash-card-desc">Agenda y cirugías realizadas</div>
+          <div class="dash-card-foot">Abrir →</div>
         </a>
 
-        <a href="{{ url_for('farmacia_pendientes') }}" style="text-decoration:none; color:inherit;">
-          <article class="hmv-section hmv-module-card" style="margin:0;">
-            <div style="font-weight:900; font-size:16px;">🧾 Pendientes de Farmacia</div>
-            <div class="hmv-muted" style="font-size:13px; margin-top:6px;">
-              Registro diario por fotos (evidencia y trazabilidad).
-            </div>
-            <div class="hmv-muted" style="font-size:12px; margin-top:10px;">Abrir →</div>
-          </article>
+        <!-- Inventario -->
+        <a href="{{ url_for('productos') }}" class="dash-card">
+          <div class="dash-card-title">📦 Productos</div>
+          <div class="dash-card-desc">Alta, edición, búsqueda y control base</div>
+          <div class="dash-card-foot">Abrir →</div>
         </a>
 
-        <article class="hmv-section" style="margin:0; border-style:dashed;">
-          <div style="font-weight:900; font-size:16px;">🩺 Quirófano (próximamente)</div>
-          <div class="hmv-muted" style="font-size:13px; margin-top:6px;">
-            Material y medicamentos usados por cirugía.
-          </div>
-          <div class="hmv-muted" style="font-size:12px; margin-top:10px;">En construcción</div>
-        </article>
+        <a href="{{ url_for('movimientos') }}" class="dash-card">
+          <div class="dash-card-title">🔁 Entradas / Salidas</div>
+          <div class="dash-card-desc">Movimientos por producto (piezas) con notas</div>
+          <div class="dash-card-foot">Abrir →</div>
+        </a>
+
+        <!-- Farmacia -->
+        <a href="{{ url_for('farmacia_pendientes') }}" class="dash-card">
+          <div class="dash-card-title">🧾 Farmacia</div>
+          <div class="dash-card-desc">Pendientes, evidencia diaria y trazabilidad</div>
+          <div class="dash-card-foot">Abrir →</div>
+        </a>
+
+        <!-- Próximos -->
+        <div class="dash-card dash-card--ghost">
+          <div class="dash-card-title">🩺 Quirófano</div>
+          <div class="dash-card-desc">Material y medicamentos usados por cirugía</div>
+          <div class="dash-card-foot">Próximamente</div>
+        </div>
+
+        <div class="dash-card dash-card--ghost">
+          <div class="dash-card-title">📦 Almacén</div>
+          <div class="dash-card-desc">OC, entradas/salidas, stock real</div>
+          <div class="dash-card-foot">Próximamente</div>
+        </div>
 
       </div>
     </div>
   </section>
 
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function tick(){
+    const now = new Date();
+    const h = pad(now.getHours());
+    const m = pad(now.getMinutes());
+
+    const dias = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+    const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+    const dateStr = `${dias[now.getDay()]} ${now.getDate()} de ${meses[now.getMonth()]} ${now.getFullYear()}`;
+
+    const clock = document.getElementById("clock");
+    const date = document.getElementById("date");
+    if(clock) clock.textContent = `${h}:${m}`;
+    if(date) date.textContent = dateStr;
+  }
+
+  tick();
+  setInterval(tick, 15000);
+</script>
 {% endblock %}

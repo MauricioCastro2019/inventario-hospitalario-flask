@@ -124,13 +124,6 @@ img{
   margin-top: 2px;
 }
 
-.hmv-topbar-actions{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-wrap: wrap;
-}
-
 /* Compat: si algún template usa <img> sin class="hmv-logo" dentro de .hmv-brand */
 .hmv-brand img{
   height: 44px !important;
@@ -446,5 +439,198 @@ input:focus, select:focus, textarea:focus{
     width: 120px;
     height: 34px;
     opacity: 0.04;
+  }
+}
+
+/* =========================
+   DASHBOARD (mobile-first)
+========================= */
+.dash-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.dash-head{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.dash-clock{
+  font-size:30px;
+  font-weight:900;
+  letter-spacing:.5px;
+}
+.dash-date{
+  color: var(--hmv-muted);
+  margin-top:2px;
+}
+.dash-muted{
+  color: var(--hmv-muted);
+  font-size:12px;
+  margin-top:6px;
+}
+
+.dash-quick{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.dash-next-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  background: var(--hmv-card);
+  border:1px solid var(--hmv-border);
+  border-radius: var(--hmv-radius);
+  padding:14px;
+  box-shadow: var(--hmv-shadow);
+}
+.dash-next-name{ font-weight:900; font-size:16px; }
+.dash-next-meta{ color: var(--hmv-muted); font-size:12px; margin-top:2px; }
+.dash-next-empty{
+  background: var(--hmv-card);
+  border:1px dashed var(--hmv-border);
+  border-radius: var(--hmv-radius);
+  padding:14px;
+  color: var(--hmv-muted);
+}
+
+.dash-stats{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:12px;
+}
+.dash-stat{
+  background: var(--hmv-card);
+  border:1px solid var(--hmv-border);
+  border-radius: var(--hmv-radius);
+  padding:14px;
+  box-shadow: var(--hmv-shadow);
+}
+.dash-stat-label{ color: var(--hmv-muted); font-size:12px; }
+.dash-stat-value{ font-size:28px; font-weight:900; margin-top:6px; }
+.dash-stat-sub{ color: var(--hmv-muted); font-size:12px; margin-top:6px; }
+.dash-stat-hint{ color: var(--hmv-muted); font-size:12px; margin-top:10px; }
+
+.dash-grid{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:12px;
+}
+
+.dash-card{
+  display:block;
+  text-decoration:none;
+  color:inherit;
+  background: var(--hmv-card);
+  border:1px solid var(--hmv-border);
+  border-radius: var(--hmv-radius);
+  padding:14px;
+  box-shadow: var(--hmv-shadow);
+}
+
+.dash-card-title{ font-weight:900; font-size:16px; }
+.dash-card-desc{ color: var(--hmv-muted); font-size:12px; margin-top:6px; }
+.dash-card-foot{ color: var(--hmv-muted); font-size:12px; margin-top:10px; }
+
+.dash-card--ghost{
+  border-style:dashed;
+  box-shadow:none;
+}
+
+/* Tablet+ */
+@media (min-width: 768px){
+  .dash-head{
+    flex-direction:row;
+    align-items:flex-start;
+    justify-content:space-between;
+  }
+  .dash-grid{ grid-template-columns: 1fr 1fr; }
+  .dash-stats{ grid-template-columns: 1fr 1fr 1fr; }
+}
+/* =========================
+   TOPBAR: Mobile PRO (final)
+========================= */
+
+/* En desktop: ya estás bien con flex-wrap */
+.hmv-topbar-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+  /* Ocultar scrollbar horizontal (sensación app) */
+  .hmv-topbar-actions{
+    scrollbar-width: none;           /* Firefox */
+  }
+
+  .hmv-topbar-actions::-webkit-scrollbar{
+    display: none;                   /* Chrome / Safari */
+  }
+
+
+/* En móvil: menú tipo “fila deslizable” + CTA pegado */
+@media (max-width: 768px){
+  .hmv-topbar-inner{
+    align-items:flex-start;
+  }
+
+  /* Brand arriba, acciones abajo */
+  .hmv-topbar-inner{
+    flex-direction: column;
+  }
+
+  .hmv-topbar-actions{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    display:flex;
+    flex-wrap:nowrap;          /* clave para que no se vayan abajo */
+    gap:10px;
+    padding-bottom:8px;
+  }
+
+  .hmv-topbar-actions a{
+    white-space:nowrap;
+    flex: 0 0 auto;
+  }
+
+  /* CTA + Agregar siempre visible al final de la fila */
+  .hmv-cta{
+    position: sticky;
+    right: 0;
+    z-index: 2;
+    box-shadow: -10px 0 14px rgba(247,248,250,.85); /* “velo” suave al fondo */
+  }
+
+  /* Que el watermark no estorbe visualmente en móvil */
+  .hmv-topbar::after{
+    opacity: 0.03;
+  }
+}
+
+/* =========================
+   DASHBOARD: Micro ajustes PRO
+========================= */
+
+/* En móvil, los botones rápidos que respiren */
+@media (max-width: 576px){
+  .dash-quick a{
+    width: 100%;
+    justify-content:center;
+  }
+
+  .dash-next-card{
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dash-next-card a{
+    width:100%;
+    justify-content:center;
   }
 }

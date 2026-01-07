@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Detalle | Pendientes Farmacia | HMV</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+</head>
+
+<body>
+  <header style="max-width:1100px;margin:18px auto 8px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <img src="{{ url_for('static', filename='branding/logo_hmv.png') }}" alt="HMV" style="height:38px;">
+      <div>
+        <div style="font-weight:800;font-size:18px;">Detalle de registro</div>
+        <div style="opacity:.75;font-size:13px;">Pendientes de Farmacia</div>
+      </div>
+    </div>
+
+    <nav style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="{{ url_for('farmacia_pendientes') }}" style="text-decoration:none;padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.08);background:#fff;">⬅ Volver</a>
+      <a href="{{ url_for('farmacia_pendientes_nuevo') }}" style="text-decoration:none;padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.08);background:#fff;">➕ Nuevo</a>
+    </nav>
+  </header>
+
+  <main style="max-width:1100px;margin:0 auto 28px;padding:0 14px;">
+    <section style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:16px;">
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;">
+        <div>
+          <div style="font-weight:900;font-size:18px;">{{ registro.fecha }}</div>
+          <div style="opacity:.8;margin-top:4px;">Folio: <b>{{ registro.folio or "—" }}</b></div>
+          {% if registro.notas %}
+            <div style="margin-top:8px;opacity:.85;max-width:760px;line-height:1.35;">
+              {{ registro.notas }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div style="padding:6px 10px;border-radius:999px;border:1px solid rgba(0,0,0,.10);background:#fafafa;font-size:12px;">
+          📷 {{ registro.fotos|length }} foto(s)
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-top:12px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:16px;">
+      <h3 style="margin:0 0 12px 0;">Evidencia (galería)</h3>
+
+      {% if registro.fotos %}
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
+        {% for foto in registro.fotos %}
+          <a href="{{ url_for('static', filename=foto.filename) }}" target="_blank" style="text-decoration:none;">
+            <div style="border-radius:14px;border:1px solid rgba(0,0,0,.10);background:#f6f6f6;overflow:hidden;">
+              <img src="{{ url_for('static', filename=foto.filename) }}"
+                   alt="Foto"
+                   style="width:100%;height:140px;object-fit:cover;display:block;">
+            </div>
+          </a>
+          
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="opacity:.7;">Aún no hay fotos en este registro.</div>
+      {% endif %}
+    </section>
+
+    <section style="margin-top:12px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:16px;">
+      <h3 style="margin:0 0 12px 0;">Agregar más fotos</h3>
+
+      <form method="POST" enctype="multipart/form-data" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <input type="file" name="fotos" multiple accept="image/*"
+               style="padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:#fff;flex:1;min-width:260px;">
+        <button type="submit"
+                style="padding:12px 14px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:#fff;cursor:pointer;font-weight:700;">
+          Subir ✅
+        </button>
+      </form>
+
+      <div style="font-size:12px;opacity:.7;margin-top:8px;">
+        Tip: toma fotos durante el turno y agrégalas aquí para mantener un historial completo del día.
+      </div>
+    </section>
+  </main>
+</body>
+</html>

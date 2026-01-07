@@ -47,6 +47,10 @@ else:
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["UPLOAD_FOLDER"] = "static/uploads"
+# Pendientes Farmacia (fotos)
+app.config["PHARMA_UPLOAD_FOLDER"] = "static/uploads/farmacia_pendientes"
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB por request (ajústalo si quieres)
+
 
 # Evita conexiones zombie en Postgres (cuando aplique)
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
@@ -121,12 +125,40 @@ class Producto(db.Model):
     )
 
 class Movimiento(db.Model):
+    
     id = db.Column(db.Integer, primary_key=True)
     producto_id = db.Column(db.Integer, db.ForeignKey("producto.id"), nullable=False)
     tipo = db.Column(db.String(10), nullable=False)  # "entrada" | "salida"
     cantidad = db.Column(db.Integer, nullable=False) # SIEMPRE en piezas
     fecha = db.Column(db.DateTime, default=datetime.utcnow)
     nota = db.Column(db.String(255))
+
+    
+    
+class FarmaciaPendienteRegistro(db.Model):
+    __tablename__ = "farmacia_pendiente_registro"
+
+    id = db.Column(db.Integer, primary_key=True)
+    fecha = db.Column(db.Date, nullable=False, index=True)
+    folio = db.Column(db.String(50), nullable=True, index=True)
+    notas = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    fotos = db.relationship(
+        "FarmaciaPendienteFoto",
+        backref="registro",
+        lazy=True,
+        cascade="all, delete-orphan"
+    )
+
+
+class FarmaciaPendienteFoto(db.Model):
+    __tablename__ = "farmacia_pendiente_foto"
+
+    id = db.Column(db.Integer, primary_key=True)
+    registro_id = db.Column(db.Integer, db.ForeignKey("farmacia_pendiente_registro.id"), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
 # ---------------------------
 # AUTOPARCHE DE ESQUEMA (SQLite friendly)
@@ -199,8 +231,21 @@ def ensure_product_columns():
 def ensure_upload_folder():
     try:
         os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+        os.makedirs(app.config["PHARMA_UPLOAD_FOLDER"], exist_ok=True)
     except Exception as e:
         print("⚠️ No se pudo crear UPLOAD_FOLDER:", e)
+
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def build_photo_filename(original_name, fecha, folio=None):
+    ext = original_name.rsplit(".", 1)[1].lower()
+    safe_folio = (folio or "sinfolio").replace(" ", "_")
+    timestamp = datetime.utcnow().strftime("%H%M%S%f")
+    return f"{fecha.strftime('%Y%m%d')}_{safe_folio}_{timestamp}.{ext}"
 
 # ---------------------------
 # INIT DB (prototipo)
@@ -213,6 +258,12 @@ with app.app_context():
 # ---------------------------
 # RUTAS
 # ---------------------------
+
+from flask import redirect, url_for
+
+@app.route("/")
+def home():
+    return redirect(url_for("dashboard"))
 
 @app.route("/")
 def index():
@@ -417,7 +468,110 @@ def nuevo_movimiento(producto_id):
 
     return render_template("nuevo_movimiento.html", producto=producto)
 
+@app.route("/farmacia/pendientes", methods=["GET"])
+def farmacia_pendientes():
+    fecha_str = request.args.get("fecha")  # YYYY-MM-DD
+    q = FarmaciaPendienteRegistro.query
+
+    if fecha_str:
+        try:
+            fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+            q = q.filter(FarmaciaPendienteRegistro.fecha == fecha)
+        except ValueError:
+            fecha_str = None
+
+    registros = q.order_by(
+        FarmaciaPendienteRegistro.fecha.desc(),
+        FarmaciaPendienteRegistro.id.desc()
+    ).all()
+
+    return render_template("farmacia_pendientes.html", registros=registros, fecha_str=fecha_str)
+
+
+@app.route("/farmacia/pendientes/nuevo", methods=["GET", "POST"])
+def farmacia_pendientes_nuevo():
+    if request.method == "POST":
+        fecha_str = request.form.get("fecha")
+        folio = (request.form.get("folio") or "").strip() or None
+        notas = (request.form.get("notas") or "").strip() or None
+
+        if not fecha_str:
+            return "Fecha obligatoria", 400
+
+        try:
+            fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+        except ValueError:
+            return "Fecha inválida", 400
+
+        files = request.files.getlist("fotos")
+        valid_files = [f for f in files if f and f.filename and allowed_file(f.filename)]
+
+        if not valid_files:
+            return "Sube al menos una foto válida (jpg/png/webp).", 400
+
+        registro = FarmaciaPendienteRegistro(fecha=fecha, folio=folio, notas=notas)
+        db.session.add(registro)
+        db.session.flush()  # para obtener registro.id sin commit aún
+
+        for f in valid_files:
+            original = secure_filename(f.filename)
+            new_name = build_photo_filename(original, fecha, folio)
+            save_path = os.path.join(app.config["PHARMA_UPLOAD_FOLDER"], new_name)
+            f.save(save_path)
+
+            rel_path = f"uploads/farmacia_pendientes/{new_name}"
+            db.session.add(FarmaciaPendienteFoto(registro_id=registro.id, filename=rel_path))
+
+        db.session.commit()
+        return redirect(url_for("farmacia_pendiente_detalle", registro_id=registro.id))
+
+    return render_template("farmacia_pendientes_nuevo.html")
+
+
+@app.route("/farmacia/pendientes/<int:registro_id>", methods=["GET", "POST"])
+def farmacia_pendiente_detalle(registro_id):
+    registro = FarmaciaPendienteRegistro.query.get_or_404(registro_id)
+
+    if request.method == "POST":
+        files = request.files.getlist("fotos")
+        valid_files = [f for f in files if f and f.filename and allowed_file(f.filename)]
+
+        if valid_files:
+            for f in valid_files:
+                original = secure_filename(f.filename)
+                new_name = build_photo_filename(original, registro.fecha, registro.folio)
+                save_path = os.path.join(app.config["PHARMA_UPLOAD_FOLDER"], new_name)
+                f.save(save_path)
+
+                rel_path = f"uploads/farmacia_pendientes/{new_name}"
+                db.session.add(FarmaciaPendienteFoto(registro_id=registro.id, filename=rel_path))
+
+            db.session.commit()
+
+        return redirect(url_for("farmacia_pendiente_detalle", registro_id=registro.id))
+
+    return render_template("farmacia_pendiente_detalle.html", registro=registro)
+
+@app.route("/dashboard")
+def dashboard():
+    # KPIs básicos (puedes crecerlos después)
+    productos_count = Producto.query.count()
+    movimientos_count = Movimiento.query.count()
+    pendientes_count = FarmaciaPendienteRegistro.query.count()
+
+    # Pendientes de hoy
+    hoy = datetime.utcnow().date()
+    pendientes_hoy = FarmaciaPendienteRegistro.query.filter_by(fecha=hoy).count()
+
+    return render_template(
+        "dashboard.html",
+        productos_count=productos_count,
+        movimientos_count=movimientos_count,
+        pendientes_count=pendientes_count,
+        pendientes_hoy=pendientes_hoy
+    )
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
+

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nuevo registro | Pendientes Farmacia | HMV</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+</head>
+
+<body>
+  <header style="max-width:1100px;margin:18px auto 8px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <img src="{{ url_for('static', filename='branding/logo_hmv.png') }}" alt="HMV" style="height:38px;">
+      <div>
+        <div style="font-weight:800;font-size:18px;">Nuevo registro</div>
+        <div style="opacity:.75;font-size:13px;">Pendientes de Farmacia (fotos por día/folio)</div>
+      </div>
+    </div>
+
+    <nav style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="{{ url_for('farmacia_pendientes') }}" style="text-decoration:none;padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.08);background:#fff;">⬅ Volver</a>
+      <a href="{{ url_for('index') }}" style="text-decoration:none;padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.08);background:#fff;">🏠 Inicio</a>
+    </nav>
+  </header>
+
+  <main style="max-width:1100px;margin:0 auto 28px;padding:0 14px;">
+    <section style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:16px;">
+      <form method="POST" enctype="multipart/form-data" style="display:grid;gap:12px;max-width:640px;">
+        <div>
+          <label style="display:block;font-size:12px;opacity:.75;margin-bottom:6px;">Fecha *</label>
+          <input type="date" name="fecha" required
+                 style="padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);width:100%;">
+        </div>
+
+        <div>
+          <label style="display:block;font-size:12px;opacity:.75;margin-bottom:6px;">Folio (opcional)</label>
+          <input type="text" name="folio" placeholder="Ej. PF-2026-001"
+                 style="padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);width:100%;">
+        </div>
+
+        <div>
+          <label style="display:block;font-size:12px;opacity:.75;margin-bottom:6px;">Notas (opcional)</label>
+          <textarea name="notas" rows="3" placeholder="Ej. Turno matutino / faltantes / urgencias…"
+                    style="padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);width:100%;resize:vertical;"></textarea>
+        </div>
+
+        <div>
+          <label style="display:block;font-size:12px;opacity:.75;margin-bottom:6px;">Fotos *</label>
+          <input type="file" name="fotos" multiple accept="image/*" required
+                 style="padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);width:100%;background:#fff;">
+          <div style="font-size:12px;opacity:.7;margin-top:6px;">
+            Puedes subir varias fotos del mismo día (por cambios durante el turno).
+          </div>
+        </div>
+
+        <button type="submit"
+                style="padding:12px 14px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:#fff;cursor:pointer;font-weight:700;">
+          Guardar registro ✅
+        </button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

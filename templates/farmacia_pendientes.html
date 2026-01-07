@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pendientes de Farmacia | HMV</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+</head>
+
+<body>
+  <header style="max-width:1100px;margin:18px auto 8px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <img src="{{ url_for('static', filename='branding/logo_hmv.png') }}" alt="HMV" style="height:38px;">
+      <div>
+        <div style="font-weight:800;font-size:18px;">Pendientes de Farmacia</div>
+        <div style="opacity:.75;font-size:13px;">Registro diario por fotos (evidencia y trazabilidad)</div>
+      </div>
+    </div>
+
+    <nav style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="{{ url_for('index') }}" style="text-decoration:none;padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.08);background:#fff;">🏠 Inicio</a>
+      <a href="{{ url_for('farmacia_pendientes_nuevo') }}" style="text-decoration:none;padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.08);background:#fff;">➕ Nuevo registro</a>
+    </nav>
+  </header>
+
+  <main style="max-width:1100px;margin:0 auto 28px;padding:0 14px;">
+    <!-- Filtro -->
+    <section style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:14px;display:flex;gap:12px;align-items:end;flex-wrap:wrap;">
+      <form method="GET" action="{{ url_for('farmacia_pendientes') }}" style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;">
+        <div>
+          <label style="display:block;font-size:12px;opacity:.75;margin-bottom:6px;">Filtrar por fecha</label>
+          <input type="date" name="fecha" value="{{ fecha_str or '' }}"
+                 style="padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);min-width:220px;">
+        </div>
+
+        <button type="submit"
+                style="padding:10px 14px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:#fff;cursor:pointer;">
+          🔎 Buscar
+        </button>
+
+        <a href="{{ url_for('farmacia_pendientes') }}"
+           style="text-decoration:none;padding:10px 14px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:#fff;">
+          ✖ Quitar filtro
+        </a>
+      </form>
+    </section>
+
+    <section style="margin-top:14px;">
+      {% if registros %}
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;">
+          {% for r in registros %}
+            <a href="{{ url_for('farmacia_pendiente_detalle', registro_id=r.id) }}"
+               style="text-decoration:none;color:inherit;">
+              <article style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:14px;">
+                <div style="display:flex;justify-content:space-between;gap:10px;align-items:start;">
+                  <div>
+                    <div style="font-weight:800;font-size:16px;">{{ r.fecha }}</div>
+                    <div style="opacity:.8;font-size:13px;margin-top:2px;">
+                      Folio: <b>{{ r.folio or "—" }}</b>
+                    </div>
+                  </div>
+                  <div style="padding:6px 10px;border-radius:999px;border:1px solid rgba(0,0,0,.10);background:#fafafa;font-size:12px;">
+                    📷 {{ r.fotos|length }}
+                  </div>
+                </div>
+
+                {% if r.notas %}
+                  <div style="margin-top:10px;font-size:13px;opacity:.85;line-height:1.35;">
+                    {{ r.notas }}
+                  </div>
+                {% else %}
+                  <div style="margin-top:10px;font-size:13px;opacity:.55;">
+                    Sin notas.
+                  </div>
+                {% endif %}
+
+                <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                  <span style="font-size:12px;opacity:.7;">Abrir detalle →</span>
+                </div>
+              </article>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:18px;">
+          <div style="font-weight:800;">No hay registros aún.</div>
+          <div style="opacity:.75;margin-top:6px;">Crea tu primer registro y sube una o varias fotos del día.</div>
+          <div style="margin-top:12px;">
+            <a href="{{ url_for('farmacia_pendientes_nuevo') }}"
+               style="text-decoration:none;padding:10px 14px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:#fff;">
+              ➕ Nuevo registro
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>

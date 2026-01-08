@@ -12,6 +12,9 @@
 
 <body>
 
+  {# Helper simple para saber dónde estamos #}
+  {% set ep = request.endpoint or "" %}
+
   <!-- TOPBAR -->
   <header class="hmv-topbar">
     <div class="hmv-topbar-inner">
@@ -30,17 +33,21 @@
       </a>
 
       <!-- Acciones / navegación -->
-      <nav class="hmv-topbar-actions" aria-label="Navegación principal">
-        <a class="btn-hmv-outline {% if request.endpoint == 'dashboard' %}is-active{% endif %}"
+      <nav class="hmv-topbar-actions" aria-label="Navegación principal" style="flex-wrap:wrap; gap:10px;">
+        <a class="btn-hmv-outline {% if ep == 'dashboard' %}is-active{% endif %}"
            href="{{ url_for('dashboard') }}">Dashboard</a>
 
-        <a class="btn-hmv-outline {% if request.endpoint in ['productos','agregar','editar'] %}is-active{% endif %}"
+        <a class="btn-hmv-outline {% if ep in ['productos','agregar','editar'] %}is-active{% endif %}"
            href="{{ url_for('productos') }}">Productos</a>
 
-        <a class="btn-hmv-outline {% if request.endpoint in ['movimientos','nuevo_movimiento'] %}is-active{% endif %}"
+        <a class="btn-hmv-outline {% if ep in ['movimientos','nuevo_movimiento'] %}is-active{% endif %}"
            href="{{ url_for('movimientos') }}">Movimientos</a>
 
-        <a class="btn-hmv-outline {% if request.endpoint in ['farmacia_pendientes','farmacia_pendientes_nuevo','farmacia_pendiente_detalle'] %}is-active{% endif %}"
+        {# 🩺 Cirugías (módulo nuevo) #}
+        <a class="btn-hmv-outline {% if ep.startswith('cirug') or ep in ['cirugias','nueva_cirugia','cirugia_cambiar_estado'] %}is-active{% endif %}"
+           href="{{ url_for('cirugias') }}">Cirugías</a>
+
+        <a class="btn-hmv-outline {% if ep in ['farmacia_pendientes','farmacia_pendientes_nuevo','farmacia_pendiente_detalle'] %}is-active{% endif %}"
            href="{{ url_for('farmacia_pendientes') }}">Farmacia</a>
 
         <a class="btn-hmv hmv-cta"

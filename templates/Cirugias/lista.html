@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% set estados = ["PROGRAMADA","CONFIRMADA","EN_PREP","EN_CURSO","FINALIZADA","CANCELADA","REPROGRAMADA"] %}
+{% set estado_class = {
+  "PROGRAMADA": "bg-secondary",
+  "CONFIRMADA": "bg-primary",
+  "EN_PREP": "bg-warning text-dark",
+  "EN_CURSO": "bg-info text-dark",
+  "FINALIZADA": "bg-success",
+  "CANCELADA": "bg-danger",
+  "REPROGRAMADA": "bg-dark"
+} %}
+
+<div class="container py-4">
+
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h2 class="mb-0">🩺 Programación de Cirugías</h2>
+      <small class="text-muted">Agenda diaria y control de estado</small>
+    </div>
+
+    <a href="{{ url_for('nueva_cirugia') }}" class="btn btn-primary">
+      ➕ Nueva cirugía
+    </a>
+  </div>
+
+  <form method="get" class="d-flex flex-wrap align-items-end gap-2 mb-3">
+    <div>
+      <label class="form-label mb-1">Fecha</label>
+      <input type="date" name="fecha" value="{{ fecha }}" class="form-control">
+    </div>
+
+    <button class="btn btn-outline-primary" type="submit">Ver</button>
+
+    <a class="btn btn-outline-secondary"
+       href="{{ url_for('cirugias', fecha='') }}">
+      Hoy
+    </a>
+  </form>
+
+  {% if cirugias %}
+    <div class="card shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 90px;">Hora</th>
+              <th>Paciente</th>
+              <th>Procedimiento</th>
+              <th style="width: 90px;">Quirófano</th>
+              <th>Cirujano</th>
+              <th style="width: 240px;">Estado</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for c in cirugias %}
+            <tr>
+              <td class="fw-semibold">{{ c.hora_inicio.strftime("%H:%M") }}</td>
+
+              <td>
+                <div class="fw-semibold">{{ c.paciente_nombre }}</div>
+                {% if c.paciente_folio %}
+                  <small class="text-muted">Folio: {{ c.paciente_folio }}</small>
+                {% endif %}
+              </td>
+
+              <td>
+                <div class="fw-semibold">{{ c.procedimiento }}</div>
+                {% if c.especialidad %}
+                  <small class="text-muted">{{ c.especialidad }}</small>
+                {% endif %}
+              </td>
+
+              <td>{{ c.quirofano }}</td>
+              <td>{{ c.cirujano }}</td>
+
+              <td>
+                <form method="post"
+                      action="{{ url_for('cirugia_cambiar_estado', cirugia_id=c.id) }}"
+                      class="d-flex align-items-center gap-2">
+                  <select name="estado"
+                          class="form-select form-select-sm"
+                          onchange="this.form.submit()">
+                    {% for e in estados %}
+                      <option value="{{ e }}" {% if c.estado == e %}selected{% endif %}>
+                        {{ e }}
+                      </option>
+                    {% endfor %}
+                  </select>
+
+                  <span class="badge {{ estado_class.get(c.estado, 'bg-secondary') }}">
+                    {{ c.estado }}
+                  </span>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
+    </div>
+
+    <div class="mt-2 text-muted">
+      <small>Total: {{ cirugias|length }} cirugía(s)</small>
+    </div>
+
+  {% else %}
+    <div class="alert alert-info">
+      No hay cirugías programadas para este día.
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

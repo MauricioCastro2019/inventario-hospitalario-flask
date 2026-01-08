@@ -14,9 +14,12 @@
     </div>
 
     <div class="dash-quick">
-      <!-- Rutas aún no existen: dejamos # para no romper -->
-      <a class="hmv-btn-primary" href="#" style="text-decoration:none;">+ Programar cirugía</a>
-      <a class="hmv-btn-outline" href="#" style="text-decoration:none;">Calendario / Historial</a>
+      <a class="hmv-btn-primary" href="{{ url_for('nueva_cirugia') }}" style="text-decoration:none;">
+        + Programar cirugía
+      </a>
+      <a class="hmv-btn-outline" href="{{ url_for('cirugias') }}" style="text-decoration:none;">
+        Calendario / Historial
+      </a>
     </div>
   </div>
 
@@ -27,22 +30,46 @@
         <div class="hmv-title" style="font-size: 18px;">Próxima cirugía</div>
         <div class="hmv-muted" style="margin-top: 4px;">Lo siguiente del día (agenda operativa)</div>
       </div>
+      <div class="hmv-actions">
+        <a class="hmv-btn-outline" href="{{ url_for('cirugias') }}" style="text-decoration:none;">Ver agenda</a>
+      </div>
     </div>
 
     <div class="hmv-card-body">
       {% if proxima_cirugia %}
         <div class="dash-next-card">
           <div class="dash-next-main">
-            <div class="dash-next-name">{{ proxima_cirugia.tipo }}</div>
+            <div class="dash-next-name">
+              {{ proxima_cirugia.procedimiento }}
+            </div>
+
             <div class="dash-next-meta">
-              {{ proxima_cirugia.hora }} · Qx {{ proxima_cirugia.quirofano }} · {{ proxima_cirugia.medico }}
+              {{ proxima_cirugia.hora_inicio.strftime("%H:%M") }}
+              · {{ proxima_cirugia.quirofano }}
+              · {{ proxima_cirugia.cirujano }}
+              · {{ proxima_cirugia.estado }}
+            </div>
+
+            <div class="hmv-muted" style="margin-top:6px;">
+              Paciente: <strong>{{ proxima_cirugia.paciente_nombre }}</strong>
+              {% if proxima_cirugia.paciente_folio %}· Folio: {{ proxima_cirugia.paciente_folio }}{% endif %}
             </div>
           </div>
-          <a class="hmv-btn-outline" href="#" style="text-decoration:none;">Ver</a>
+
+          <a class="hmv-btn-outline"
+             href="{{ url_for('cirugias', fecha=proxima_cirugia.fecha.strftime('%Y-%m-%d')) }}"
+             style="text-decoration:none;">
+            Ver
+          </a>
         </div>
       {% else %}
         <div class="dash-next-empty">
           No hay cirugías programadas para hoy (aún).
+          <div style="margin-top:10px;">
+            <a class="hmv-btn-primary" href="{{ url_for('nueva_cirugia') }}" style="text-decoration:none;">
+              + Programar ahora
+            </a>
+          </div>
         </div>
       {% endif %}
     </div>
@@ -58,6 +85,7 @@
       <div class="hmv-actions">
         <a class="hmv-btn-outline" href="{{ url_for('productos') }}">📦 Productos</a>
         <a class="hmv-btn-outline" href="{{ url_for('movimientos') }}">🔁 Movimientos</a>
+        <a class="hmv-btn-outline" href="{{ url_for('cirugias') }}">🩺 Cirugías</a>
         <a class="hmv-btn-primary" href="{{ url_for('farmacia_pendientes') }}">🧾 Farmacia</a>
       </div>
     </div>
@@ -75,6 +103,17 @@
           <div class="dash-stat-label">Movimientos</div>
           <div class="dash-stat-value">{{ movimientos_count }}</div>
           <div class="dash-stat-sub">Entradas y salidas (piezas)</div>
+        </div>
+
+        <div class="dash-stat">
+          <div class="dash-stat-label">Cirugías (hoy)</div>
+          <div class="dash-stat-value">{{ cirugias_hoy or 0 }}</div>
+          <div class="dash-stat-sub">Programadas para hoy</div>
+          {% if (cirugias_hoy or 0)|int > 0 %}
+            <div class="dash-stat-hint">Agenda activa.</div>
+          {% else %}
+            <div class="dash-stat-hint">Sin agenda registrada hoy.</div>
+          {% endif %}
         </div>
 
         <div class="dash-stat">
@@ -108,15 +147,15 @@
       <div class="dash-grid">
 
         <!-- Cirugías -->
-        <a href="#" class="dash-card">
+        <a href="{{ url_for('nueva_cirugia') }}" class="dash-card">
           <div class="dash-card-title">🗓️ Programar cirugías</div>
-          <div class="dash-card-desc">Registrar programación del día</div>
+          <div class="dash-card-desc">Registrar programación del día y control de estados</div>
           <div class="dash-card-foot">Abrir →</div>
         </a>
 
-        <a href="#" class="dash-card">
+        <a href="{{ url_for('cirugias') }}" class="dash-card">
           <div class="dash-card-title">📆 Calendario / Historial</div>
-          <div class="dash-card-desc">Agenda y cirugías realizadas</div>
+          <div class="dash-card-desc">Ver agenda por fecha y cirugías registradas</div>
           <div class="dash-card-foot">Abrir →</div>
         </a>
 

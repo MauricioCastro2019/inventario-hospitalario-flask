@@ -59,6 +59,10 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 
 db = SQLAlchemy(app)
 
+from flask_migrate import Migrate
+migrate = Migrate(app, db)
+
+
 # ---------------------------
 # CONFIG DE PRECIOS
 # ---------------------------
@@ -159,6 +163,61 @@ class FarmaciaPendienteFoto(db.Model):
     registro_id = db.Column(db.Integer, db.ForeignKey("farmacia_pendiente_registro.id"), nullable=False)
     filename = db.Column(db.String(255), nullable=False)
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+from sqlalchemy import CheckConstraint
+
+class Cirugia(db.Model):
+    __tablename__ = "cirugias"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    # Programación
+    fecha = db.Column(db.Date, nullable=False, index=True)
+    hora_inicio = db.Column(db.Time, nullable=False)
+    duracion_min = db.Column(db.Integer, nullable=False, default=60)
+    quirofano = db.Column(db.String(50), nullable=False, index=True)
+
+    # Paciente
+    paciente_nombre = db.Column(db.String(120), nullable=False)
+    paciente_folio = db.Column(db.String(60), nullable=True, index=True)
+
+    # Procedimiento
+    especialidad = db.Column(db.String(80), nullable=True, index=True)
+    procedimiento = db.Column(db.String(180), nullable=False)
+
+    # Equipo (texto por ahora)
+    cirujano = db.Column(db.String(120), nullable=False, index=True)
+    anestesiologo = db.Column(db.String(120), nullable=True, index=True)
+
+    # Estado
+    estado = db.Column(db.String(20), nullable=False, default="PROGRAMADA", index=True)
+
+    # Notas
+    notas = db.Column(db.Text, nullable=True)
+
+    # Auditoría
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        CheckConstraint("duracion_min >= 10 AND duracion_min <= 1440", name="ck_cirugia_duracion"),
+    )
+
+class CirugiaEvento(db.Model):
+    __tablename__ = "cirugia_eventos"
+
+    id = db.Column(db.Integer, primary_key=True)
+    cirugia_id = db.Column(db.Integer, db.ForeignKey("cirugias.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    tipo = db.Column(db.String(30), nullable=False)  # "CREADA", "CAMBIO_ESTADO", "EDITADA"
+    detalle = db.Column(db.Text, nullable=True)
+
+    # si luego metemos usuarios, esto se vuelve user_id
+    actor = db.Column(db.String(80), nullable=True)
+
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    cirugia = db.relationship("Cirugia", backref=db.backref("eventos", lazy=True, cascade="all, delete-orphan"))
 
 # ---------------------------
 # AUTOPARCHE DE ESQUEMA (SQLite friendly)
@@ -559,22 +618,145 @@ def farmacia_pendiente_detalle(registro_id):
 
 @app.route("/dashboard")
 def dashboard():
-    # KPIs básicos (puedes crecerlos después)
+    # KPIs básicos
     productos_count = Producto.query.count()
     movimientos_count = Movimiento.query.count()
     pendientes_count = FarmaciaPendienteRegistro.query.count()
 
-    # Pendientes de hoy
     hoy = datetime.utcnow().date()
+    ahora = datetime.utcnow().time()
+
     pendientes_hoy = FarmaciaPendienteRegistro.query.filter_by(fecha=hoy).count()
+
+    # ✅ Cirugías: KPI + próxima cirugía real
+    cirugias_hoy = Cirugia.query.filter_by(fecha=hoy).count()
+
+    # Próxima cirugía = la siguiente a la hora actual
+    proxima_cirugia = (
+        Cirugia.query
+        .filter(Cirugia.fecha == hoy, Cirugia.hora_inicio >= ahora)
+        .order_by(Cirugia.hora_inicio.asc())
+        .first()
+    )
+
+    # Si ya pasó la hora de todas, muestra la primera del día (para no dejar vacío)
+    if not proxima_cirugia:
+        proxima_cirugia = (
+            Cirugia.query
+            .filter(Cirugia.fecha == hoy)
+            .order_by(Cirugia.hora_inicio.asc())
+            .first()
+        )
 
     return render_template(
         "dashboard.html",
         productos_count=productos_count,
         movimientos_count=movimientos_count,
         pendientes_count=pendientes_count,
-        pendientes_hoy=pendientes_hoy
+        pendientes_hoy=pendientes_hoy,
+        cirugias_hoy=cirugias_hoy,
+        proxima_cirugia=proxima_cirugia,
     )
+@app.route("/cirugias")
+def cirugias():
+    fecha_str = request.args.get("fecha")
+    try:
+        fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date() if fecha_str else datetime.utcnow().date()
+    except ValueError:
+        fecha = datetime.utcnow().date()
+
+    cirugias = Cirugia.query.filter_by(fecha=fecha).order_by(Cirugia.hora_inicio.asc()).all()
+
+    return render_template(
+        "cirugias/lista.html",
+        cirugias=cirugias,
+        fecha=fecha
+    )
+ESTADOS_CIRUGIA = [
+    "PROGRAMADA",
+    "CONFIRMADA",
+    "EN_PREP",
+    "EN_CURSO",
+    "FINALIZADA",
+    "CANCELADA",
+    "REPROGRAMADA",
+]
+
+@app.route("/cirugias/nueva", methods=["GET", "POST"])
+def nueva_cirugia():
+    if request.method == "POST":
+        # Validaciones básicas
+        fecha_str = request.form.get("fecha")
+        hora_str = request.form.get("hora_inicio")
+        duracion_min = int(request.form.get("duracion_min", 60) or 60)
+
+        if not fecha_str or not hora_str:
+            return "Fecha y hora son obligatorias", 400
+
+        try:
+            fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+            hora_inicio = datetime.strptime(hora_str, "%H:%M").time()
+        except ValueError:
+            return "Fecha u hora inválidas", 400
+
+        estado = request.form.get("estado", "PROGRAMADA")
+        if estado not in ESTADOS_CIRUGIA:
+            estado = "PROGRAMADA"
+
+        c = Cirugia(
+            fecha=fecha,
+            hora_inicio=hora_inicio,
+            duracion_min=duracion_min,
+            quirofano=(request.form.get("quirofano") or "").strip(),
+            paciente_nombre=(request.form.get("paciente_nombre") or "").strip(),
+            paciente_folio=(request.form.get("paciente_folio") or "").strip() or None,
+            especialidad=(request.form.get("especialidad") or "").strip() or None,
+            procedimiento=(request.form.get("procedimiento") or "").strip(),
+            cirujano=(request.form.get("cirujano") or "").strip(),
+            anestesiologo=(request.form.get("anestesiologo") or "").strip() or None,
+            estado=estado,
+            notas=(request.form.get("notas") or "").strip() or None,
+        )
+
+        # Validación mínima pro
+        if not c.quirofano or not c.paciente_nombre or not c.procedimiento or not c.cirujano:
+            return "Faltan campos obligatorios (quirófano, paciente, procedimiento, cirujano).", 400
+
+        db.session.add(c)
+        db.session.flush()  # para tener c.id
+
+        ev = CirugiaEvento(
+            cirugia_id=c.id,
+            tipo="CREADA",
+            detalle=f"Creada en estado {c.estado}",
+            actor=None
+        )
+        db.session.add(ev)
+        db.session.commit()
+
+        return redirect(url_for("cirugias", fecha=fecha.strftime("%Y-%m-%d")))
+
+    return render_template("cirugias/nueva.html", estados=ESTADOS_CIRUGIA)
+@app.route("/cirugias/<int:cirugia_id>/estado", methods=["POST"])
+def cirugia_cambiar_estado(cirugia_id):
+    nuevo = request.form.get("estado")
+    if nuevo not in ESTADOS_CIRUGIA:
+        return "Estado inválido", 400
+
+    c = Cirugia.query.get_or_404(cirugia_id)
+    anterior = c.estado
+
+    if nuevo != anterior:
+        c.estado = nuevo
+        db.session.add(CirugiaEvento(
+            cirugia_id=c.id,
+            tipo="CAMBIO_ESTADO",
+            detalle=f"{anterior} → {nuevo}",
+            actor=None
+        ))
+        db.session.commit()
+
+    return redirect(url_for("cirugias", fecha=c.fecha.strftime("%Y-%m-%d")))
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

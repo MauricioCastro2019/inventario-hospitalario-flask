@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>➕ Nueva Cirugía</h2>
+    <a href="{{ url_for('cirugias') }}" class="btn btn-outline-secondary">← Volver</a>
+  </div>
+
+  <div class="card p-3 shadow-sm">
+    <form method="post" class="row g-3">
+
+      <div class="col-md-3">
+        <label class="form-label">Fecha *</label>
+        <input type="date" name="fecha" class="form-control" required>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Hora inicio *</label>
+        <input type="time" name="hora_inicio" class="form-control" required>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Duración (min)</label>
+        <input type="number" name="duracion_min" class="form-control" value="60" min="10" max="1440">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Quirófano *</label>
+        <input type="text" name="quirofano" class="form-control" placeholder="QX 1" required>
+      </div>
+
+      <hr class="my-2">
+
+      <div class="col-md-6">
+        <label class="form-label">Paciente *</label>
+        <input type="text" name="paciente_nombre" class="form-control" required>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Folio / Expediente</label>
+        <input type="text" name="paciente_folio" class="form-control">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Especialidad</label>
+        <input type="text" name="especialidad" class="form-control" placeholder="Gine, Trauma...">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Procedimiento *</label>
+        <input type="text" name="procedimiento" class="form-control" required>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Cirujano *</label>
+        <input type="text" name="cirujano" class="form-control" required>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Anestesiólogo</label>
+        <input type="text" name="anestesiologo" class="form-control">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Estado</label>
+        <select name="estado" class="form-select">
+          {% for e in estados %}
+            <option value="{{ e }}" {% if e == "PROGRAMADA" %}selected{% endif %}>{{ e }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Notas</label>
+        <textarea name="notas" class="form-control" rows="3" placeholder="Observaciones..."></textarea>
+      </div>
+
+      <div class="col-12 d-flex gap-2">
+        <button class="btn btn-primary" type="submit">Guardar</button>
+        <a class="btn btn-outline-secondary" href="{{ url_for('cirugias') }}">Cancelar</a>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}

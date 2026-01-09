@@ -6,16 +6,16 @@
   <title>{% block title %}HMV Digital{% endblock %}</title>
 
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/hmv-law.css') }}">
 
   {% block head_extra %}{% endblock %}
 </head>
 
 <body>
 
-  {# Helper simple para saber dónde estamos #}
   {% set ep = request.endpoint or "" %}
 
-  <!-- TOPBAR -->
+  <!-- TOPBAR (Minimal) -->
   <header class="hmv-topbar">
     <div class="hmv-topbar-inner">
 
@@ -32,26 +32,16 @@
         </span>
       </a>
 
-      <!-- Acciones / navegación -->
-      <nav class="hmv-topbar-actions" aria-label="Navegación principal" style="flex-wrap:wrap; gap:10px;">
+      <!-- ✅ Acciones globales (solo 3) -->
+      <nav class="hmv-topbar-actions" aria-label="Acciones globales" style="flex-wrap:wrap; gap:10px;">
         <a class="btn-hmv-outline {% if ep == 'dashboard' %}is-active{% endif %}"
-           href="{{ url_for('dashboard') }}">Dashboard</a>
+           href="{{ url_for('dashboard') }}">Inicio</a>
 
-        <a class="btn-hmv-outline {% if ep in ['productos','agregar','editar'] %}is-active{% endif %}"
-           href="{{ url_for('productos') }}">Productos</a>
+        <a class="btn-hmv-outline {% if ep in ['agregar','editar','productos'] %}is-active{% endif %}"
+           href="{{ url_for('agregar') }}">+ Agregar producto</a>
 
-        <a class="btn-hmv-outline {% if ep in ['movimientos','nuevo_movimiento'] %}is-active{% endif %}"
-           href="{{ url_for('movimientos') }}">Movimientos</a>
-
-        {# 🩺 Cirugías (módulo nuevo) #}
-        <a class="btn-hmv-outline {% if ep.startswith('cirug') or ep in ['cirugias','nueva_cirugia','cirugia_cambiar_estado'] %}is-active{% endif %}"
-           href="{{ url_for('cirugias') }}">Cirugías</a>
-
-        <a class="btn-hmv-outline {% if ep in ['farmacia_pendientes','farmacia_pendientes_nuevo','farmacia_pendiente_detalle'] %}is-active{% endif %}"
-           href="{{ url_for('farmacia_pendientes') }}">Farmacia</a>
-
-        <a class="btn-hmv hmv-cta"
-           href="{{ url_for('agregar') }}">+ Agregar</a>
+        <a class="btn-hmv {% if ep in ['cirugias','nueva_cirugia','cirugia_cambiar_estado'] or ep.startswith('cirug') %}is-active{% endif %}"
+           href="{{ url_for('nueva_cirugia') }}">+ Programar cirugía</a>
       </nav>
 
     </div>

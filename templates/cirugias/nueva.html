@@ -1,142 +1,169 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container py-4">
 
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>➕ Nueva Cirugía</h2>
-    <a href="{{ url_for('cirugias') }}" class="btn btn-outline-secondary">← Volver</a>
+<div class="hmv-page">
+
+  <!-- Header interno -->
+  <div class="hmv-topbar">
+    <div>
+      <h1 class="hmv-title">➕ Nueva Cirugía</h1>
+      <p class="hmv-subtitle">Captura programación, paciente, procedimiento y evidencia</p>
+    </div>
+
+    <div class="hmv-actions">
+      <a href="{{ url_for('cirugias') }}" class="btn btn-hmv-outline">← Volver</a>
+    </div>
   </div>
 
-  <div class="card p-3 shadow-sm">
+  <div class="hmv-card">
+
     <form method="post" enctype="multipart/form-data" class="row g-3">
 
       <!-- Programación -->
-      <div class="col-md-3">
-        <label class="form-label">Fecha *</label>
-        <input type="date" name="fecha" class="form-control" required>
-      </div>
+      <div class="hmv-section" style="margin-top:0;">
+        <div class="hmv-section-title">Programación</div>
 
-      <div class="col-md-3">
-        <label class="form-label">Hora inicio *</label>
-        <input type="time" name="hora_inicio" class="form-control" required>
-      </div>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">Fecha *</label>
+            <input type="date" name="fecha" class="form-control" required>
+          </div>
 
-      <div class="col-md-3">
-        <label class="form-label">Duración (min)</label>
-        <input type="number" name="duracion_min" class="form-control" min="10" max="1440" placeholder="Ej. 60">
-        <div class="form-text">Opcional. Si la dejas vacía, queda sin duración registrada.</div>
-      </div>
+          <div class="col-md-3">
+            <label class="form-label">Hora inicio *</label>
+            <input type="time" name="hora_inicio" class="form-control" required>
+          </div>
 
-      <div class="col-md-3">
-        <label class="form-label">Quirófano *</label>
-        <input type="text" name="quirofano" class="form-control" placeholder="QX 1" required>
-      </div>
+          <div class="col-md-3">
+            <label class="form-label">Duración (min)</label>
+            <input type="number" name="duracion_min" class="form-control" min="10" max="1440" placeholder="Ej. 60">
+            <div class="form-text">Opcional. Si la dejas vacía, queda sin duración registrada.</div>
+          </div>
 
-      <hr class="my-2">
+          <div class="col-md-3">
+            <label class="form-label">Quirófano *</label>
+            <input type="text" name="quirofano" class="form-control" placeholder="QX 1" required>
+          </div>
+        </div>
+      </div>
 
       <!-- Paciente -->
-      <div class="col-md-6">
-        <label class="form-label">Paciente *</label>
-        <input type="text" name="paciente" class="form-control" required>
+      <div class="hmv-section">
+        <div class="hmv-section-title">Paciente</div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Paciente *</label>
+            <input type="text" name="paciente" class="form-control" required>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label">Edad *</label>
+            <input type="number" name="edad" class="form-control" min="0" max="120" required>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label">Sexo *</label>
+            <select name="sexo" class="form-select" required>
+              <option value="" selected disabled>Selecciona</option>
+              {% for s in sexos %}
+                <option value="{{ s }}">{{ s }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label">Teléfono</label>
+            <input type="text" name="telefono" class="form-control" placeholder="(opcional)">
+            <div class="form-text">Opcional por ahora.</div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Folio / Expediente *</label>
+            <input type="text" name="folio_expediente" class="form-control" required>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Especialidad</label>
+            <input type="text" name="especialidad" class="form-control" placeholder="Gine, Trauma...">
+            <div class="form-text">Opcional (luego afinamos catálogo).</div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Programó *</label>
+            <input type="text" name="programo" class="form-control" placeholder="Nombre / iniciales" required>
+          </div>
+        </div>
       </div>
 
-      <div class="col-md-2">
-        <label class="form-label">Edad *</label>
-        <input type="number" name="edad" class="form-control" min="0" max="120" required>
+      <!-- Procedimiento y equipo -->
+      <div class="hmv-section">
+        <div class="hmv-section-title">Procedimiento y equipo</div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Procedimiento *</label>
+            <input type="text" name="procedimiento" class="form-control" required>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">Cirujano *</label>
+            <input type="text" name="cirujano" class="form-control" required>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">Anestesiólogo *</label>
+            <input type="text" name="anestesiologo" class="form-control" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Ayudantes *</label>
+            <input type="text" name="ayudantes" class="form-control" placeholder="Ej: Dr. X, Dr. Y" required>
+            <div class="form-text">Ponlos separados por coma.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Instrumentista *</label>
+            <input type="text" name="instrumentista" class="form-control" required>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">Estado</label>
+            <select name="estado" class="form-select">
+              {% for e in estados %}
+                <option value="{{ e }}" {% if e == "PROGRAMADA" %}selected{% endif %}>{{ e }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
       </div>
 
-      <div class="col-md-2">
-        <label class="form-label">Sexo *</label>
-        <select name="sexo" class="form-select" required>
-          <option value="" selected disabled>Selecciona</option>
-          {% for s in sexos %}
-            <option value="{{ s }}">{{ s }}</option>
-          {% endfor %}
-        </select>
+      <!-- Indicaciones / Evidencia -->
+      <div class="hmv-section">
+        <div class="hmv-section-title">Indicaciones y evidencia</div>
+
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Indicaciones especiales</label>
+            <textarea name="indicaciones_especiales" class="form-control" rows="3" placeholder="Ayuno, antibiótico, material especial, etc."></textarea>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Foto de la orden física *</label>
+            <input type="file" name="orden_foto" class="form-control" accept=".jpg,.jpeg,.png,.webp" required>
+            <div class="form-text">Obligatoria. Formatos: JPG / PNG / WEBP.</div>
+          </div>
+        </div>
       </div>
 
-      <div class="col-md-2">
-        <label class="form-label">Teléfono</label>
-        <input type="text" name="telefono" class="form-control" placeholder="(opcional)">
-        <div class="form-text">Opcional por ahora.</div>
-      </div>
-
-      <div class="col-md-4">
-        <label class="form-label">Folio / Expediente *</label>
-        <input type="text" name="folio_expediente" class="form-control" required>
-      </div>
-
-      <div class="col-md-4">
-        <label class="form-label">Especialidad</label>
-        <input type="text" name="especialidad" class="form-control" placeholder="Gine, Trauma...">
-        <div class="form-text">Opcional (luego afinamos catálogo).</div>
-      </div>
-
-      <div class="col-md-4">
-        <label class="form-label">Programó *</label>
-        <input type="text" name="programo" class="form-control" placeholder="Nombre / iniciales" required>
-      </div>
-
-      <hr class="my-2">
-
-      <!-- Procedimiento -->
-      <div class="col-md-6">
-        <label class="form-label">Procedimiento *</label>
-        <input type="text" name="procedimiento" class="form-control" required>
-      </div>
-
-      <!-- Equipo -->
-      <div class="col-md-3">
-        <label class="form-label">Cirujano *</label>
-        <input type="text" name="cirujano" class="form-control" required>
-      </div>
-
-      <div class="col-md-3">
-        <label class="form-label">Anestesiólogo *</label>
-        <input type="text" name="anestesiologo" class="form-control" required>
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label">Ayudantes *</label>
-        <input type="text" name="ayudantes" class="form-control" placeholder="Ej: Dr. X, Dr. Y" required>
-        <div class="form-text">Ponlos separados por coma.</div>
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label">Instrumentista *</label>
-        <input type="text" name="instrumentista" class="form-control" required>
-      </div>
-
-      <div class="col-md-3">
-        <label class="form-label">Estado</label>
-        <select name="estado" class="form-select">
-          {% for e in estados %}
-            <option value="{{ e }}" {% if e == "PROGRAMADA" %}selected{% endif %}>{{ e }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <hr class="my-2">
-
-      <!-- Indicaciones / Foto -->
-      <div class="col-12">
-        <label class="form-label">Indicaciones especiales</label>
-        <textarea name="indicaciones_especiales" class="form-control" rows="3" placeholder="Ayuno, antibiótico, material especial, etc."></textarea>
-      </div>
-
-      <div class="col-12">
-        <label class="form-label">Foto de la orden física *</label>
-        <input type="file" name="orden_foto" class="form-control" accept=".jpg,.jpeg,.png,.webp" required>
-        <div class="form-text">Obligatoria. Formatos: JPG / PNG / WEBP.</div>
-      </div>
-
-      <div class="col-12 d-flex gap-2">
-        <button class="btn btn-primary" type="submit">Guardar</button>
-        <a class="btn btn-outline-secondary" href="{{ url_for('cirugias') }}">Cancelar</a>
+      <!-- Acciones -->
+      <div class="d-flex gap-2">
+        <button class="btn btn-hmv" type="submit">Guardar</button>
+        <a class="btn btn-hmv-outline" href="{{ url_for('cirugias') }}">Cancelar</a>
       </div>
 
     </form>
   </div>
-
 </div>
+
 {% endblock %}

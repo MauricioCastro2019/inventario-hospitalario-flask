@@ -1,0 +1,419 @@
+/* =========================
+   HMV LAW — Design System
+   ========================= */
+
+/* 1) TOKENS */
+:root{
+    --hmv-primary: #5A1D6D;
+    --hmv-primary-2: #7A2B8A;
+    --hmv-bg: #F7F8FA;
+    --hmv-card: #FFFFFF;
+    --hmv-soft: #F9FAFB;
+    --hmv-border: #E5E7EB;
+    --hmv-text: #2B2B2B;
+    --hmv-muted: #6B7280;
+  
+    --hmv-danger: #B42318;
+    --hmv-warning: #B54708;
+    --hmv-success: #027A48;
+  
+    --hmv-radius-lg: 16px;
+    --hmv-radius-md: 12px;
+    --hmv-radius-pill: 999px;
+  
+    --hmv-shadow: 0 6px 18px rgba(0,0,0,.04);
+  
+    --hmv-space-1: 6px;
+    --hmv-space-2: 10px;
+    --hmv-space-3: 16px;
+    --hmv-space-4: 24px;
+    --hmv-space-5: 32px;
+  }
+  
+  /* 2) BASE */
+  *{ box-sizing: border-box; }
+  body{
+    background: var(--hmv-bg);
+    color: var(--hmv-text);
+  }
+  
+  /* 3) LAYOUT (envoltura universal) */
+  .hmv-page{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--hmv-space-4) 16px;
+  }
+  
+  .hmv-topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: var(--hmv-space-3);
+    margin-bottom: var(--hmv-space-3);
+  }
+  
+  .hmv-title{
+    font-size: 1.45rem;
+    font-weight: 700;
+    margin: 0;
+  }
+  .hmv-subtitle{
+    margin: 4px 0 0 0;
+    color: var(--hmv-muted);
+    font-size: .95rem;
+  }
+  
+  /* 4) CARDS */
+  .hmv-card{
+    background: var(--hmv-card);
+    border: 1px solid var(--hmv-border);
+    border-radius: var(--hmv-radius-lg);
+    box-shadow: var(--hmv-shadow);
+    padding: var(--hmv-space-4);
+  }
+  
+  .hmv-section{
+    background: var(--hmv-soft);
+    border: 1px solid var(--hmv-border);
+    border-radius: var(--hmv-radius-md);
+    padding: var(--hmv-space-3);
+    margin-top: var(--hmv-space-3);
+  }
+  
+  .hmv-section-title{
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 var(--hmv-space-2) 0;
+  }
+  
+  /* 5) GRID / STACK */
+  .hmv-grid{
+    display: grid;
+    gap: var(--hmv-space-3);
+  }
+  .hmv-grid-2{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hmv-grid-3{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  
+  @media (max-width: 900px){
+    .hmv-grid-2, .hmv-grid-3{ grid-template-columns: 1fr; }
+  }
+  
+  .hmv-actions{
+    display:flex;
+    gap: var(--hmv-space-2);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  
+  /* 6) BOTONES (sin pelear con Bootstrap) */
+  .hmv-btn{
+    border-radius: var(--hmv-radius-pill) !important;
+    padding: 8px 16px !important;
+    border: 1px solid transparent;
+    font-weight: 600;
+  }
+  
+  .hmv-btn-primary{
+    background: var(--hmv-primary) !important;
+    color: #fff !important;
+  }
+  .hmv-btn-primary:hover{ background: var(--hmv-primary-2) !important; }
+  
+  .hmv-btn-outline{
+    background: transparent !important;
+    border-color: var(--hmv-primary) !important;
+    color: var(--hmv-primary) !important;
+  }
+  .hmv-btn-outline:hover{
+    background: rgba(90,29,109,.06) !important;
+  }
+  
+  /* 7) FORM CONTROLS (uniformidad) */
+  .hmv-input, .hmv-select, .hmv-textarea{
+    border-radius: var(--hmv-radius-md) !important;
+    border: 1px solid var(--hmv-border) !important;
+    padding: 10px 12px !important;
+  }
+  .hmv-input:focus, .hmv-select:focus, .hmv-textarea:focus{
+    border-color: rgba(90,29,109,.45) !important;
+    box-shadow: 0 0 0 .2rem rgba(90,29,109,.12) !important;
+  }
+  
+  /* Si estás usando .form-control de Bootstrap, esto lo armoniza */
+  .form-control, .form-select{
+    border-radius: var(--hmv-radius-md) !important;
+    border-color: var(--hmv-border) !important;
+  }
+  .form-control:focus, .form-select:focus{
+    border-color: rgba(90,29,109,.45) !important;
+    box-shadow: 0 0 0 .2rem rgba(90,29,109,.12) !important;
+  }
+  
+  /* 8) LINKS */
+  .hmv-link{
+    color: var(--hmv-primary);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .hmv-link:hover{ text-decoration: underline; }
+  
+  /* 9) MODULOS (cards tipo dashboard) */
+  .hmv-module-card{
+    background: var(--hmv-card);
+    border: 1px solid var(--hmv-border);
+    border-radius: var(--hmv-radius-lg);
+    box-shadow: var(--hmv-shadow);
+    padding: var(--hmv-space-3);
+  }
+  .hmv-module-title{
+    font-weight: 700;
+    margin: 0 0 6px 0;
+  }
+  .hmv-module-desc{
+    color: var(--hmv-muted);
+    margin: 0 0 10px 0;
+    font-size: .92rem;
+  }
+  /* ===== Harmonizar botones actuales (sin reescribir templates) ===== */
+.btn-hmv,
+.btn-hmv-outline{
+  border-radius: var(--hmv-radius-pill) !important;
+  padding: 8px 16px !important;
+  font-weight: 600 !important;
+}
+
+.btn-hmv{
+  background: var(--hmv-primary) !important;
+  color: #fff !important;
+}
+
+.btn-hmv:hover{
+  background: var(--hmv-primary-2) !important;
+}
+
+.btn-hmv-outline{
+  background: transparent !important;
+  border: 1px solid var(--hmv-primary) !important;
+  color: var(--hmv-primary) !important;
+}
+
+.btn-hmv-outline:hover{
+  background: rgba(90,29,109,.06) !important;
+}
+/* ===== Fix: botones con tamaños uniformes ===== */
+.btn-hmv, .btn-hmv-outline{
+    line-height: 1.2 !important;
+    font-size: 0.95rem !important;
+    padding: 8px 16px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+  
+  .btn-hmv-outline{
+    white-space: nowrap !important;
+  }
+  /* ===== TOPBAR PRO: brand izquierda, acciones derecha ===== */
+.hmv-topbar-inner{
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+  }
+  
+  /* el nav se pega a la derecha */
+  .hmv-topbar-actions{
+    margin-left: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+  }
+  
+  /* brand izquierda, compacto */
+  .hmv-brand{
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    text-decoration: none !important;
+  }
+  
+  /* opcional: que el logo no crezca raro */
+  .hmv-logo{
+    height: 34px !important;
+    width: auto !important;
+  }
+  /* ===== TOPBAR ancho completo, contenido con padding ===== */
+.hmv-topbar{
+    width: 100% !important;
+  }
+  
+  .hmv-topbar-inner{
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 12px 16px !important;
+  }
+  /* =========================================================
+   TOPBAR PRO DEFINITIVO (gana contra theme.css)
+   Objetivo: logo izquierda / acciones derecha, 100% estable.
+   ========================================================= */
+
+/* el header a lo ancho */
+header.hmv-topbar{
+    width: 100% !important;
+    background: #fff !important;
+    border-bottom: 1px solid var(--hmv-border) !important;
+  }
+  
+  /* contenedor interno: flex real, sin centrado */
+  header.hmv-topbar .hmv-topbar-inner{
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 12px 16px !important;
+  
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  
+    text-align: left !important;
+  }
+  
+  /* BRAND: siempre pegado a la izquierda */
+  header.hmv-topbar .hmv-brand{
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+  
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+  
+    text-align: left !important;
+    justify-content: flex-start !important;
+  }
+  
+  /* logo controlado */
+  header.hmv-topbar .hmv-logo{
+    height: 34px !important;
+    width: auto !important;
+    display: block !important;
+  }
+  
+  /* acciones: empuja a la derecha sí o sí */
+  header.hmv-topbar .hmv-topbar-actions{
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+  
+    flex: 1 1 auto !important;
+    margin-left: auto !important;
+  
+    width: auto !important;
+    text-align: right !important;
+  }
+  
+  /* por si theme mete centrado en los links/botones */
+  header.hmv-topbar .hmv-topbar-actions a{
+    justify-content: center !important;
+  }
+  
+  /* responsive: en móvil sí dejamos que baje a dos líneas */
+  @media (max-width: 700px){
+    header.hmv-topbar .hmv-topbar-inner{
+      gap: 10px !important;
+    }
+    header.hmv-topbar .hmv-topbar-actions{
+      justify-content: flex-end !important;
+    }
+  }
+  /* =========================================================
+   TOPBAR — DESKTOP PRO (override final)
+   Brand izquierda | Acciones derecha
+   ========================================================= */
+
+/* Desktop: layout en fila SIEMPRE */
+@media (min-width: 769px){
+    header.hmv-topbar .hmv-topbar-inner{
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 16px !important;
+      text-align: left !important;
+    }
+  
+    /* Brand fijo a la izquierda */
+    header.hmv-topbar .hmv-brand{
+      flex: 0 0 auto !important;
+      margin: 0 !important;
+      justify-content: flex-start !important;
+    }
+  
+    /* Acciones empujadas a la derecha */
+    header.hmv-topbar .hmv-topbar-actions{
+      flex: 1 1 auto !important;
+      margin-left: auto !important;
+      justify-content: flex-end !important;
+      width: auto !important;
+      overflow: visible !important;
+      flex-wrap: wrap !important;
+    }
+  
+    /* Quita cualquier “scroll horizontal” en desktop */
+    header.hmv-topbar .hmv-topbar-actions{
+      overflow-x: visible !important;
+      -webkit-overflow-scrolling: auto !important;
+    }
+  
+    /* CTA no sticky en desktop */
+    header.hmv-topbar .hmv-cta{
+      position: static !important;
+      box-shadow: none !important;
+    }
+  }
+  
+  /* Mantén tu comportamiento móvil tal cual */
+  @media (max-width: 768px){
+    header.hmv-topbar .hmv-topbar-inner{
+      flex-direction: column !important;
+      align-items: flex-start !important;
+    }
+  }
+  header.hmv-topbar .hmv-brand-text{
+    min-width: 180px !important; /* para que el bloque izq tenga presencia */
+  }
+    /* =========================================================
+   TOPBAR FIX DEFINITIVO
+   Causa: .hmv-topbar en hmv-law.css está como flex y encoge
+   el .hmv-topbar-inner => se ve centrado.
+   Solución: topbar block + inner 100% + empuje real a derecha.
+   ========================================================= */
+
+header.hmv-topbar{
+    display: block !important;   /* 🔥 mata el flex viejo */
+  }
+  
+  /* el contenedor interno debe ocupar todo el ancho disponible */
+  header.hmv-topbar .hmv-topbar-inner{
+    width: 100% !important;
+    max-width: 1140px !important;  /* o 1200 si quieres */
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+  
+  /* brand pegado a la izquierda */
+  header.hmv-topbar .hmv-brand{
+    margin-right: auto !important;
+  }
+  
+  /* acciones pegadas a la derecha */
+  header.hmv-topbar .hmv-topbar-actions{
+    margin-left: auto !important;
+    justify-content: flex-end !important;
+    text-align: right !important;
+  }
+  

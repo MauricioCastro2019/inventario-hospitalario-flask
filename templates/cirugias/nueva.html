@@ -8,8 +8,9 @@
   </div>
 
   <div class="card p-3 shadow-sm">
-    <form method="post" class="row g-3">
+    <form method="post" enctype="multipart/form-data" class="row g-3">
 
+      <!-- Programación -->
       <div class="col-md-3">
         <label class="form-label">Fecha *</label>
         <input type="date" name="fecha" class="form-control" required>
@@ -22,7 +23,8 @@
 
       <div class="col-md-3">
         <label class="form-label">Duración (min)</label>
-        <input type="number" name="duracion_min" class="form-control" value="60" min="10" max="1440">
+        <input type="number" name="duracion_min" class="form-control" min="10" max="1440" placeholder="Ej. 60">
+        <div class="form-text">Opcional. Si la dejas vacía, queda sin duración registrada.</div>
       </div>
 
       <div class="col-md-3">
@@ -32,34 +34,77 @@
 
       <hr class="my-2">
 
+      <!-- Paciente -->
       <div class="col-md-6">
         <label class="form-label">Paciente *</label>
-        <input type="text" name="paciente_nombre" class="form-control" required>
+        <input type="text" name="paciente" class="form-control" required>
       </div>
 
-      <div class="col-md-3">
-        <label class="form-label">Folio / Expediente</label>
-        <input type="text" name="paciente_folio" class="form-control">
+      <div class="col-md-2">
+        <label class="form-label">Edad *</label>
+        <input type="number" name="edad" class="form-control" min="0" max="120" required>
       </div>
 
-      <div class="col-md-3">
+      <div class="col-md-2">
+        <label class="form-label">Sexo *</label>
+        <select name="sexo" class="form-select" required>
+          <option value="" selected disabled>Selecciona</option>
+          {% for s in sexos %}
+            <option value="{{ s }}">{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label">Teléfono</label>
+        <input type="text" name="telefono" class="form-control" placeholder="(opcional)">
+        <div class="form-text">Opcional por ahora.</div>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Folio / Expediente *</label>
+        <input type="text" name="folio_expediente" class="form-control" required>
+      </div>
+
+      <div class="col-md-4">
         <label class="form-label">Especialidad</label>
         <input type="text" name="especialidad" class="form-control" placeholder="Gine, Trauma...">
+        <div class="form-text">Opcional (luego afinamos catálogo).</div>
       </div>
 
+      <div class="col-md-4">
+        <label class="form-label">Programó *</label>
+        <input type="text" name="programo" class="form-control" placeholder="Nombre / iniciales" required>
+      </div>
+
+      <hr class="my-2">
+
+      <!-- Procedimiento -->
       <div class="col-md-6">
         <label class="form-label">Procedimiento *</label>
         <input type="text" name="procedimiento" class="form-control" required>
       </div>
 
+      <!-- Equipo -->
       <div class="col-md-3">
         <label class="form-label">Cirujano *</label>
         <input type="text" name="cirujano" class="form-control" required>
       </div>
 
       <div class="col-md-3">
-        <label class="form-label">Anestesiólogo</label>
-        <input type="text" name="anestesiologo" class="form-control">
+        <label class="form-label">Anestesiólogo *</label>
+        <input type="text" name="anestesiologo" class="form-control" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Ayudantes *</label>
+        <input type="text" name="ayudantes" class="form-control" placeholder="Ej: Dr. X, Dr. Y" required>
+        <div class="form-text">Ponlos separados por coma.</div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Instrumentista *</label>
+        <input type="text" name="instrumentista" class="form-control" required>
       </div>
 
       <div class="col-md-3">
@@ -71,9 +116,18 @@
         </select>
       </div>
 
+      <hr class="my-2">
+
+      <!-- Indicaciones / Foto -->
       <div class="col-12">
-        <label class="form-label">Notas</label>
-        <textarea name="notas" class="form-control" rows="3" placeholder="Observaciones..."></textarea>
+        <label class="form-label">Indicaciones especiales</label>
+        <textarea name="indicaciones_especiales" class="form-control" rows="3" placeholder="Ayuno, antibiótico, material especial, etc."></textarea>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Foto de la orden física *</label>
+        <input type="file" name="orden_foto" class="form-control" accept=".jpg,.jpeg,.png,.webp" required>
+        <div class="form-text">Obligatoria. Formatos: JPG / PNG / WEBP.</div>
       </div>
 
       <div class="col-12 d-flex gap-2">

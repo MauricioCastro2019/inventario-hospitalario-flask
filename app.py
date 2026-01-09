@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
 from werkzeug.utils import secure_filename
-from sqlalchemy import text
+from sqlalchemy import text, CheckConstraint
+from flask_migrate import Migrate
+
+from datetime import datetime, timezone
 import os
 
 app = Flask(__name__)
@@ -46,20 +48,18 @@ else:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["UPLOAD_FOLDER"] = "static/uploads"
-# Pendientes Farmacia (fotos)
-app.config["PHARMA_UPLOAD_FOLDER"] = "static/uploads/farmacia_pendientes"
-app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB por request (ajústalo si quieres)
 
+# Uploads
+app.config["UPLOAD_FOLDER"] = "static/uploads"
+app.config["PHARMA_UPLOAD_FOLDER"] = "static/uploads/farmacia_pendientes"
+app.config["CIRUGIA_UPLOAD_FOLDER"] = "static/uploads/cirugias"  # ✅ nuevo
+
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB por request
 
 # Evita conexiones zombie en Postgres (cuando aplique)
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_pre_ping": True
-}
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
 
 db = SQLAlchemy(app)
-
-from flask_migrate import Migrate
 migrate = Migrate(app, db)
 
 
@@ -82,6 +82,49 @@ def calcular_precio_sugerido(costo: float, margen: float = DEFAULT_MARGEN, aplic
         precio *= (1.0 + IVA_RATE)
 
     return round(precio, 2)
+
+
+# ---------------------------
+# HELPERS GENERALES
+# ---------------------------
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+
+def allowed_file(filename: str) -> bool:
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def utcnow():
+    """UTC timezone-aware ahora."""
+    return datetime.now(timezone.utc)
+
+def build_photo_filename(original_name: str, fecha, folio=None) -> str:
+    """
+    Nombre consistente para fotos (Farmacia).
+    fecha: datetime.date
+    """
+    ext = original_name.rsplit(".", 1)[1].lower()
+    safe_folio = (folio or "sinfolio").replace(" ", "_")
+    timestamp = utcnow().strftime("%H%M%S%f")
+    return f"{fecha.strftime('%Y%m%d')}_{safe_folio}_{timestamp}.{ext}"
+
+def build_cirugia_photo_filename(original_name: str, fecha, folio_expediente: str) -> str:
+    """
+    Nombre consistente para fotos (Cirugías).
+    fecha: datetime.date
+    """
+    ext = original_name.rsplit(".", 1)[1].lower()
+    safe_folio = (folio_expediente or "sinfolio").replace(" ", "_").replace("/", "_")
+    timestamp = utcnow().strftime("%H%M%S%f")
+    return f"cirugia_{fecha.strftime('%Y%m%d')}_{safe_folio}_{timestamp}.{ext}"
+
+
+def ensure_upload_folder():
+    try:
+        os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+        os.makedirs(app.config["PHARMA_UPLOAD_FOLDER"], exist_ok=True)
+        os.makedirs(app.config["CIRUGIA_UPLOAD_FOLDER"], exist_ok=True)
+    except Exception as e:
+        print("⚠️ No se pudo crear UPLOAD_FOLDER:", e)
+
 
 # ---------------------------
 # MODELOS
@@ -119,7 +162,7 @@ class Producto(db.Model):
     caducidad = db.Column(db.Date)
 
     imagen = db.Column(db.String(200))
-    ultima_modificacion = db.Column(db.DateTime, default=datetime.utcnow)
+    ultima_modificacion = db.Column(db.DateTime, default=lambda: utcnow())
 
     movimientos = db.relationship(
         "Movimiento",
@@ -128,17 +171,16 @@ class Producto(db.Model):
         cascade="all, delete-orphan"
     )
 
+
 class Movimiento(db.Model):
-    
     id = db.Column(db.Integer, primary_key=True)
     producto_id = db.Column(db.Integer, db.ForeignKey("producto.id"), nullable=False)
     tipo = db.Column(db.String(10), nullable=False)  # "entrada" | "salida"
     cantidad = db.Column(db.Integer, nullable=False) # SIEMPRE en piezas
-    fecha = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha = db.Column(db.DateTime, default=lambda: utcnow())
     nota = db.Column(db.String(255))
 
-    
-    
+
 class FarmaciaPendienteRegistro(db.Model):
     __tablename__ = "farmacia_pendiente_registro"
 
@@ -146,7 +188,7 @@ class FarmaciaPendienteRegistro(db.Model):
     fecha = db.Column(db.Date, nullable=False, index=True)
     folio = db.Column(db.String(50), nullable=True, index=True)
     notas = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: utcnow(), nullable=False)
 
     fotos = db.relationship(
         "FarmaciaPendienteFoto",
@@ -162,62 +204,104 @@ class FarmaciaPendienteFoto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     registro_id = db.Column(db.Integer, db.ForeignKey("farmacia_pendiente_registro.id"), nullable=False)
     filename = db.Column(db.String(255), nullable=False)
-    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    uploaded_at = db.Column(db.DateTime, default=lambda: utcnow(), nullable=False)
 
-from sqlalchemy import CheckConstraint
 
 class Cirugia(db.Model):
+    """
+    Cirugía v2 (orden digital complementaria al papel).
+    """
     __tablename__ = "cirugias"
 
     id = db.Column(db.Integer, primary_key=True)
 
-    # Programación
+    # Programación (obligatorias según tu lista)
     fecha = db.Column(db.Date, nullable=False, index=True)
     hora_inicio = db.Column(db.Time, nullable=False)
-    duracion_min = db.Column(db.Integer, nullable=False, default=60)
+    duracion_min = db.Column(db.Integer, nullable=True)  # opcional
     quirofano = db.Column(db.String(50), nullable=False, index=True)
 
-    # Paciente
-    paciente_nombre = db.Column(db.String(120), nullable=False)
-    paciente_folio = db.Column(db.String(60), nullable=True, index=True)
+    # Paciente (obligatorias)
+    paciente = db.Column(db.String(160), nullable=False)
+    edad = db.Column(db.Integer, nullable=False)
+    sexo = db.Column(db.String(10), nullable=False)  # "M", "F", "Otro"
+    telefono = db.Column(db.String(30), nullable=True)  # luego
 
-    # Procedimiento
-    especialidad = db.Column(db.String(80), nullable=True, index=True)
-    procedimiento = db.Column(db.String(180), nullable=False)
+    # Admin/Clínico
+    folio_expediente = db.Column(db.String(80), nullable=False, index=True)
+    especialidad = db.Column(db.String(120), nullable=True, index=True)  # opcional luego
+    procedimiento = db.Column(db.String(200), nullable=False)
 
-    # Equipo (texto por ahora)
-    cirujano = db.Column(db.String(120), nullable=False, index=True)
-    anestesiologo = db.Column(db.String(120), nullable=True, index=True)
+    # Equipo (obligatorios como dijiste)
+    cirujano = db.Column(db.String(160), nullable=False, index=True)
+    anestesiologo = db.Column(db.String(160), nullable=False, index=True)
+    ayudantes = db.Column(db.Text, nullable=False)
+    instrumentista = db.Column(db.String(160), nullable=False)
+
+    # Observaciones
+    indicaciones_especiales = db.Column(db.Text, nullable=True)
 
     # Estado
-    estado = db.Column(db.String(20), nullable=False, default="PROGRAMADA", index=True)
+    estado = db.Column(db.String(30), nullable=False, default="PROGRAMADA", index=True)
 
-    # Notas
-    notas = db.Column(db.Text, nullable=True)
+    # Control
+    programo = db.Column(db.String(160), nullable=False)
+
+    # Foto orden física (obligatoria)
+    orden_foto_path = db.Column(db.String(255), nullable=False)
 
     # Auditoría
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: utcnow())
+    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: utcnow(), onupdate=lambda: utcnow())
 
     __table_args__ = (
-        CheckConstraint("duracion_min >= 10 AND duracion_min <= 1440", name="ck_cirugia_duracion"),
+        CheckConstraint(
+            "duracion_min IS NULL OR (duracion_min >= 10 AND duracion_min <= 1440)",
+            name="ck_cirugia_duracion"
+        ),
     )
+
 
 class CirugiaEvento(db.Model):
     __tablename__ = "cirugia_eventos"
 
     id = db.Column(db.Integer, primary_key=True)
-    cirugia_id = db.Column(db.Integer, db.ForeignKey("cirugias.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    tipo = db.Column(db.String(30), nullable=False)  # "CREADA", "CAMBIO_ESTADO", "EDITADA"
+    cirugia_id = db.Column(
+        db.Integer,
+        db.ForeignKey("cirugias.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    # Tipos recomendados: "CREADA", "CAMBIO_ESTADO", "EDITADA", "NOTA", etc.
+    tipo = db.Column(db.String(30), nullable=False, index=True)
+
+    # Detalles del evento (qué cambió, nota, razón, etc.)
     detalle = db.Column(db.Text, nullable=True)
 
-    # si luego metemos usuarios, esto se vuelve user_id
+    # Por ahora texto (nombre/usuario). En el futuro: user_id (FK a tabla usuarios).
     actor = db.Column(db.String(80), nullable=True)
 
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    # Timestamp UTC (timezone-aware) para auditoría
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: utcnow(),
+        index=True
+    )
 
-    cirugia = db.relationship("Cirugia", backref=db.backref("eventos", lazy=True, cascade="all, delete-orphan"))
+    # Relación hacia Cirugia
+    cirugia = db.relationship(
+        "Cirugia",
+        backref=db.backref(
+            "eventos",
+            lazy=True,
+            cascade="all, delete-orphan",
+            passive_deletes=True
+        )
+    )
+
 
 # ---------------------------
 # AUTOPARCHE DE ESQUEMA (SQLite friendly)
@@ -228,7 +312,8 @@ def ensure_product_columns():
     Asegura que la tabla 'producto' tenga columnas que el modelo/plantillas esperan.
     Evita errores tipo: sqlite3.OperationalError: no such column: producto.unidad_compra
     NO borra datos. Funciona excelente en SQLite.
-    En Postgres, esto normalmente se haría con migraciones (Flask-Migrate).
+
+    En Postgres, lo correcto es migraciones (Flask-Migrate), aquí solo se usa para SQLite fallback.
     """
     required = {
         "nombre": "TEXT",
@@ -258,13 +343,10 @@ def ensure_product_columns():
     }
 
     try:
-        # Solo aplica ALTER TABLE directo en SQLite.
         uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
         is_sqlite = uri.startswith("sqlite")
 
         if not is_sqlite:
-            # En Postgres, mejor confiar en create_all para tablas nuevas.
-            # Si falta columna en producción, lo correcto es migración.
             print("ℹ️ ensure_product_columns: DB no es SQLite. Saltando autoparche.")
             return
 
@@ -287,42 +369,26 @@ def ensure_product_columns():
     except Exception as e:
         print("⚠️ Error en ensure_product_columns():", e)
 
-def ensure_upload_folder():
-    try:
-        os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-        os.makedirs(app.config["PHARMA_UPLOAD_FOLDER"], exist_ok=True)
-    except Exception as e:
-        print("⚠️ No se pudo crear UPLOAD_FOLDER:", e)
-
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
-
-def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-def build_photo_filename(original_name, fecha, folio=None):
-    ext = original_name.rsplit(".", 1)[1].lower()
-    safe_folio = (folio or "sinfolio").replace(" ", "_")
-    timestamp = datetime.utcnow().strftime("%H%M%S%f")
-    return f"{fecha.strftime('%Y%m%d')}_{safe_folio}_{timestamp}.{ext}"
 
 # ---------------------------
-# INIT DB (prototipo)
+# INIT DB (prototipo + seguridad)
 # ---------------------------
 with app.app_context():
+    # ✅ Lo dejamos por seguridad como pediste.
+    # En cuanto confirmemos que migraciones están 100% estables, lo retiramos.
     db.create_all()
     ensure_product_columns()
     ensure_upload_folder()
+
 
 # ---------------------------
 # RUTAS
 # ---------------------------
 
-
 @app.route("/")
 def home():
-    # Home = Dashboard
     return redirect(url_for("dashboard"))
+
 
 @app.route("/productos")
 def productos():
@@ -338,10 +404,11 @@ def productos():
 
     return render_template("index.html", productos=productos)
 
-# (Opcional pero recomendado) si alguien entra a /index por hábito:
+
 @app.route("/index")
 def index_redirect():
     return redirect(url_for("productos"))
+
 
 @app.route("/agregar", methods=["GET", "POST"])
 def agregar():
@@ -405,7 +472,7 @@ def agregar():
 
             fecha_ingreso=fecha_ingreso,
             caducidad=fecha_caducidad,
-            ultima_modificacion=datetime.utcnow()
+            ultima_modificacion=utcnow()
         )
 
         imagen = request.files.get("imagen")
@@ -469,7 +536,7 @@ def editar(id):
             request.form["fecha_caducidad"], "%Y-%m-%d"
         ).date() if request.form.get("fecha_caducidad") else None
 
-        producto.ultima_modificacion = datetime.utcnow()
+        producto.ultima_modificacion = utcnow()
 
         imagen = request.files.get("imagen")
         if imagen and imagen.filename:
@@ -524,13 +591,14 @@ def nuevo_movimiento(producto_id):
             producto.cantidad = producto.cantidad_piezas
 
         mov = Movimiento(producto_id=producto.id, tipo=tipo, cantidad=cantidad, nota=nota)
-        producto.ultima_modificacion = datetime.utcnow()
+        producto.ultima_modificacion = utcnow()
 
         db.session.add(mov)
         db.session.commit()
         return redirect(url_for("movimientos", producto_id=producto.id))
 
     return render_template("nuevo_movimiento.html", producto=producto)
+
 
 @app.route("/farmacia/pendientes", methods=["GET"])
 def farmacia_pendientes():
@@ -575,7 +643,7 @@ def farmacia_pendientes_nuevo():
 
         registro = FarmaciaPendienteRegistro(fecha=fecha, folio=folio, notas=notas)
         db.session.add(registro)
-        db.session.flush()  # para obtener registro.id sin commit aún
+        db.session.flush()
 
         for f in valid_files:
             original = secure_filename(f.filename)
@@ -616,9 +684,9 @@ def farmacia_pendiente_detalle(registro_id):
 
     return render_template("farmacia_pendiente_detalle.html", registro=registro)
 
+
 @app.route("/dashboard")
 def dashboard():
-    # KPIs básicos
     productos_count = Producto.query.count()
     movimientos_count = Movimiento.query.count()
     pendientes_count = FarmaciaPendienteRegistro.query.count()
@@ -628,10 +696,8 @@ def dashboard():
 
     pendientes_hoy = FarmaciaPendienteRegistro.query.filter_by(fecha=hoy).count()
 
-    # ✅ Cirugías: KPI + próxima cirugía real
     cirugias_hoy = Cirugia.query.filter_by(fecha=hoy).count()
 
-    # Próxima cirugía = la siguiente a la hora actual
     proxima_cirugia = (
         Cirugia.query
         .filter(Cirugia.fecha == hoy, Cirugia.hora_inicio >= ahora)
@@ -639,7 +705,6 @@ def dashboard():
         .first()
     )
 
-    # Si ya pasó la hora de todas, muestra la primera del día (para no dejar vacío)
     if not proxima_cirugia:
         proxima_cirugia = (
             Cirugia.query
@@ -657,6 +722,8 @@ def dashboard():
         cirugias_hoy=cirugias_hoy,
         proxima_cirugia=proxima_cirugia,
     )
+
+
 @app.route("/cirugias")
 def cirugias():
     fecha_str = request.args.get("fecha")
@@ -667,11 +734,9 @@ def cirugias():
 
     cirugias = Cirugia.query.filter_by(fecha=fecha).order_by(Cirugia.hora_inicio.asc()).all()
 
-    return render_template(
-        "cirugias/lista.html",
-        cirugias=cirugias,
-        fecha=fecha
-    )
+    return render_template("cirugias/lista.html", cirugias=cirugias, fecha=fecha)
+
+
 ESTADOS_CIRUGIA = [
     "PROGRAMADA",
     "CONFIRMADA",
@@ -682,13 +747,15 @@ ESTADOS_CIRUGIA = [
     "REPROGRAMADA",
 ]
 
+SEXOS = ["M", "F", "Otro"]
+
+
 @app.route("/cirugias/nueva", methods=["GET", "POST"])
 def nueva_cirugia():
     if request.method == "POST":
-        # Validaciones básicas
-        fecha_str = request.form.get("fecha")
-        hora_str = request.form.get("hora_inicio")
-        duracion_min = int(request.form.get("duracion_min", 60) or 60)
+        # --- Fecha/Hora obligatorias
+        fecha_str = (request.form.get("fecha") or "").strip()
+        hora_str = (request.form.get("hora_inicio") or "").strip()
 
         if not fecha_str or not hora_str:
             return "Fecha y hora son obligatorias", 400
@@ -699,44 +766,120 @@ def nueva_cirugia():
         except ValueError:
             return "Fecha u hora inválidas", 400
 
+        # Duración opcional
+        dur_str = (request.form.get("duracion_min") or "").strip()
+        duracion_min = int(dur_str) if dur_str else None
+
+        # Estado
         estado = request.form.get("estado", "PROGRAMADA")
         if estado not in ESTADOS_CIRUGIA:
             estado = "PROGRAMADA"
+        
+
+        # Campos obligatorios v2
+        quirofano = (request.form.get("quirofano") or "").strip()
+        paciente = (request.form.get("paciente") or "").strip()
+        folio_expediente = (request.form.get("folio_expediente") or "").strip()
+        procedimiento = (request.form.get("procedimiento") or "").strip()
+
+        cirujano = (request.form.get("cirujano") or "").strip()
+        anestesiologo = (request.form.get("anestesiologo") or "").strip()
+        ayudantes = (request.form.get("ayudantes") or "").strip()
+        instrumentista = (request.form.get("instrumentista") or "").strip()
+
+        programo = (request.form.get("programo") or "").strip()
+
+        sexo = (request.form.get("sexo") or "").strip()
+        if sexo not in SEXOS:
+            return "Sexo inválido", 400
+
+        # Edad obligatoria y razonable
+        try:
+            edad = int((request.form.get("edad") or "").strip())
+            if edad < 0 or edad > 120:
+                return "Edad inválida", 400
+        except:
+            return "Edad inválida", 400
+
+        # Indicaciones (opcional)
+        indicaciones = (request.form.get("indicaciones_especiales") or "").strip() or None
+
+        # Validación mínima pro
+        obligatorios = [
+            ("quirófano", quirofano),
+            ("paciente", paciente),
+            ("edad", str(edad) if edad is not None else ""),
+            ("sexo", sexo),
+            ("folio/expediente", folio_expediente),
+            ("procedimiento", procedimiento),
+            ("cirujano", cirujano),
+            ("anestesiólogo", anestesiologo),
+            ("ayudantes", ayudantes),
+            ("instrumentista", instrumentista),
+            ("programó", programo),
+        ]
+        faltan = [name for name, val in obligatorios if not (val and str(val).strip())]
+        if faltan:
+            return f"Faltan campos obligatorios: {', '.join(faltan)}", 400
+
+        # --- Foto obligatoria (orden física)
+        file = request.files.get("orden_foto")
+        if not file or not file.filename:
+            return "La foto de la orden física es obligatoria.", 400
+        if not allowed_file(file.filename):
+            return "Formato inválido. Usa JPG, PNG o WEBP.", 400
+
+        original = secure_filename(file.filename)
+        new_name = build_cirugia_photo_filename(original, fecha, folio_expediente)
+        save_path = os.path.join(app.config["CIRUGIA_UPLOAD_FOLDER"], new_name)
+        file.save(save_path)
+
+        # Guardamos path relativo (como en farmacia)
+        rel_path = f"uploads/cirugias/{new_name}"
 
         c = Cirugia(
             fecha=fecha,
             hora_inicio=hora_inicio,
             duracion_min=duracion_min,
-            quirofano=(request.form.get("quirofano") or "").strip(),
-            paciente_nombre=(request.form.get("paciente_nombre") or "").strip(),
-            paciente_folio=(request.form.get("paciente_folio") or "").strip() or None,
+            quirofano=quirofano,
+
+            paciente=paciente,
+            edad=edad,
+            sexo=sexo,
+
+            folio_expediente=folio_expediente,
             especialidad=(request.form.get("especialidad") or "").strip() or None,
-            procedimiento=(request.form.get("procedimiento") or "").strip(),
-            cirujano=(request.form.get("cirujano") or "").strip(),
-            anestesiologo=(request.form.get("anestesiologo") or "").strip() or None,
+            procedimiento=procedimiento,
+
+            cirujano=cirujano,
+            anestesiologo=anestesiologo,
+            ayudantes=ayudantes,
+            instrumentista=instrumentista,
+
+            indicaciones_especiales=indicaciones,
             estado=estado,
-            notas=(request.form.get("notas") or "").strip() or None,
+            programo=programo,
+
+            orden_foto_path=rel_path,
         )
 
-        # Validación mínima pro
-        if not c.quirofano or not c.paciente_nombre or not c.procedimiento or not c.cirujano:
-            return "Faltan campos obligatorios (quirófano, paciente, procedimiento, cirujano).", 400
-
         db.session.add(c)
-        db.session.flush()  # para tener c.id
+        db.session.flush()
 
-        ev = CirugiaEvento(
+        db.session.add(CirugiaEvento(
             cirugia_id=c.id,
             tipo="CREADA",
             detalle=f"Creada en estado {c.estado}",
-            actor=None
-        )
-        db.session.add(ev)
+            actor=programo or None
+        ))
+
         db.session.commit()
 
         return redirect(url_for("cirugias", fecha=fecha.strftime("%Y-%m-%d")))
 
-    return render_template("cirugias/nueva.html", estados=ESTADOS_CIRUGIA)
+    return render_template("cirugias/nueva.html", estados=ESTADOS_CIRUGIA, sexos=SEXOS)
+
+
 @app.route("/cirugias/<int:cirugia_id>/estado", methods=["POST"])
 def cirugia_cambiar_estado(cirugia_id):
     nuevo = request.form.get("estado")
@@ -758,7 +901,7 @@ def cirugia_cambiar_estado(cirugia_id):
 
     return redirect(url_for("cirugias", fecha=c.fecha.strftime("%Y-%m-%d")))
 
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
-

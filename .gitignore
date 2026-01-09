@@ -19,10 +19,8 @@ db.sqlite3
 instance/
 
 # -------------------------
-# Migraciones (se recrean)
+# Migraciones (si se suben)
 # -------------------------
-migrations/
-
 # -------------------------
 # Uploads (imágenes)
 # -------------------------

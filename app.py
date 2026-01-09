@@ -374,12 +374,19 @@ def ensure_product_columns():
 # INIT DB (prototipo + seguridad)
 # ---------------------------
 with app.app_context():
-    # ✅ Lo dejamos por seguridad como pediste.
-    # En cuanto confirmemos que migraciones están 100% estables, lo retiramos.
-    db.create_all()
-    ensure_product_columns()
     ensure_upload_folder()
 
+    # ⚠️ PRO: en proyectos con migraciones NO usamos create_all()
+    # El esquema se crea/actualiza con: flask db upgrade
+
+    uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
+    is_sqlite = uri.startswith("sqlite")
+
+    if is_sqlite:
+        # Si más adelante quieres conservar autoparche SOLO para legacy producto,
+        # lo activamos, pero ahorita lo apagamos para no sabotear Alembic.
+        # ensure_product_columns()
+        pass
 
 # ---------------------------
 # RUTAS
@@ -691,8 +698,8 @@ def dashboard():
     movimientos_count = Movimiento.query.count()
     pendientes_count = FarmaciaPendienteRegistro.query.count()
 
-    hoy = datetime.utcnow().date()
-    ahora = datetime.utcnow().time()
+    hoy = datetime.now().date()
+    ahora = datetime.now().time()
 
     pendientes_hoy = FarmaciaPendienteRegistro.query.filter_by(fecha=hoy).count()
 

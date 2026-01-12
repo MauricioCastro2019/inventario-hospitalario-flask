@@ -26,6 +26,7 @@
   <main style="max-width:1100px;margin:0 auto 28px;padding:0 14px;">
     <section style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:16px;">
       <form method="POST" enctype="multipart/form-data" style="display:grid;gap:12px;max-width:640px;">
+
         <div>
           <label style="display:block;font-size:12px;opacity:.75;margin-bottom:6px;">Fecha *</label>
           <input type="date" name="fecha" required
@@ -44,21 +45,88 @@
                     style="padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);width:100%;resize:vertical;"></textarea>
         </div>
 
+        <!-- Fotos -->
         <div>
           <label style="display:block;font-size:12px;opacity:.75;margin-bottom:6px;">Fotos *</label>
-          <input type="file" name="fotos" multiple accept="image/*" required
-                 style="padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);width:100%;background:#fff;">
-          <div style="font-size:12px;opacity:.7;margin-top:6px;">
-            Puedes subir varias fotos del mismo día (por cambios durante el turno).
+
+          <!-- INPUT ÚNICO -->
+          <input
+            type="file"
+            name="fotos"
+            id="fotos"
+            accept="image/*"
+            multiple
+            required
+            hidden
+          >
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;">
+            <button type="button" id="btn_fotos_camara"
+              style="padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:#fff;cursor:pointer;font-weight:700;">
+              📷 Cámara
+            </button>
+
+            <button type="button" id="btn_fotos_galeria"
+              style="padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:#fff;cursor:pointer;font-weight:700;">
+              🖼️ Galería
+            </button>
           </div>
+
+          <div id="fotos_info"
+               style="font-size:12px;opacity:.7;margin-top:8px;">
+            Obligatorio. Puedes seleccionar varias imágenes (JPG/PNG/WEBP).
+          </div>
+
+          <ul id="fotos_lista"
+              style="margin:10px 0 0;padding-left:18px;font-size:13px;opacity:.9;"></ul>
         </div>
 
         <button type="submit"
-                style="padding:12px 14px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:#fff;cursor:pointer;font-weight:700;">
+                style="padding:12px 14px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:#fff;cursor:pointer;font-weight:800;">
           Guardar registro ✅
         </button>
+
       </form>
     </section>
   </main>
+
+  <script>
+    (function () {
+      const input = document.getElementById("fotos");
+      const info = document.getElementById("fotos_info");
+      const lista = document.getElementById("fotos_lista");
+      const btnCam = document.getElementById("btn_fotos_camara");
+      const btnGal = document.getElementById("btn_fotos_galeria");
+
+      if (!input || !info || !lista || !btnCam || !btnGal) return;
+
+      btnCam.addEventListener("click", () => {
+        input.setAttribute("capture", "environment");
+        input.click();
+      });
+
+      btnGal.addEventListener("click", () => {
+        input.removeAttribute("capture");
+        input.click();
+      });
+
+      input.addEventListener("change", () => {
+        lista.innerHTML = "";
+
+        if (!input.files || !input.files.length) {
+          info.textContent = "Obligatorio. Puedes seleccionar varias imágenes (JPG/PNG/WEBP).";
+          return;
+        }
+
+        info.textContent = `Seleccionadas: ${input.files.length} foto(s).`;
+
+        for (const f of input.files) {
+          const li = document.createElement("li");
+          li.textContent = f.name;
+          lista.appendChild(li);
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

@@ -151,33 +151,61 @@
           <div class="col-12">
             <label class="form-label">Foto de la orden física *</label>
           
-            <div class="d-flex gap-2 flex-wrap" style="margin-top:6px;">
-              <!-- Cámara -->
-              <label class="btn btn-hmv-outline" style="cursor:pointer;">
-                📷 Cámara
-                <input
-                  type="file"
-                  name="orden_foto"
-                  id="orden_foto_camara"
-                  accept="image/*"
-                  capture="environment"
-                  hidden
-                  required
-                >
-              </label>
-          
-              <!-- Galería -->
-              <label class="btn btn-hmv-outline" style="cursor:pointer;">
-                🖼️ Galería
-                <input
-                  type="file"
-                  name="orden_foto"
-                  id="orden_foto_galeria"
-                  accept="image/*"
-                  hidden
-                >
-              </label>
+            <div class="col-12">
+              <label class="form-label">Foto de la orden física *</label>
+            
+              <!-- Input único (REQUIRED) -->
+              <input
+                type="file"
+                name="orden_foto"
+                id="orden_foto"
+                accept="image/*"
+                required
+                hidden
+              >
+            
+              <div class="d-flex gap-2 flex-wrap" style="margin-top:6px;">
+                <button type="button" class="btn btn-hmv-outline" id="btn_camara">
+                  📷 Cámara
+                </button>
+            
+                <button type="button" class="btn btn-hmv-outline" id="btn_galeria">
+                  🖼️ Galería
+                </button>
+              </div>
+            
+              <div class="form-text" id="orden_foto_nombre" style="margin-top:8px;">
+                Obligatoria. Formatos: imágenes (JPG/PNG/WEBP).
+              </div>
             </div>
+            
+            <script>
+              (function () {
+                const input = document.getElementById("orden_foto");
+                const txt = document.getElementById("orden_foto_nombre");
+                const btnCam = document.getElementById("btn_camara");
+                const btnGal = document.getElementById("btn_galeria");
+            
+                btnCam.addEventListener("click", () => {
+                  input.setAttribute("capture", "environment"); // fuerza cámara en móvil
+                  input.click();
+                });
+            
+                btnGal.addEventListener("click", () => {
+                  input.removeAttribute("capture"); // galería normal
+                  input.click();
+                });
+            
+                input.addEventListener("change", () => {
+                  if (input.files && input.files.length) {
+                    txt.textContent = "Seleccionada: " + input.files[0].name;
+                  } else {
+                    txt.textContent = "Obligatoria. Formatos: imágenes (JPG/PNG/WEBP).";
+                  }
+                });
+              })();
+            </script>
+            
           
             <div class="form-text" id="orden_foto_nombre" style="margin-top:8px;">
               Obligatoria. Formatos: imágenes (JPG/PNG/WEBP).

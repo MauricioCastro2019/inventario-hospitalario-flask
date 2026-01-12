@@ -772,13 +772,14 @@ ESTADOS_CIRUGIA = [
 
 SEXOS = ["M", "F", "Otro"]
 
-
 @app.route("/cirugias/nueva", methods=["GET", "POST"])
 def nueva_cirugia():
     if request.method == "POST":
-        # --- Fecha/Hora obligatorias
+        # ---------------------------
+        # 1) Fecha / Hora
+        # ---------------------------
         fecha_str = (request.form.get("fecha") or "").strip()
-        hora_str = (request.form.get("hora_inicio") or "").strip()
+        hora_str  = (request.form.get("hora_inicio") or "").strip()
 
         if not fecha_str or not hora_str:
             return "Fecha y hora son obligatorias", 400
@@ -789,20 +790,33 @@ def nueva_cirugia():
         except ValueError:
             return "Fecha u hora inválidas", 400
 
-        # Duración opcional
+        # ---------------------------
+        # 2) Duración (ya NO opcional en tu UI)
+        #    Si llega vacío por algún bug, default 60
+        # ---------------------------
         dur_str = (request.form.get("duracion_min") or "").strip()
-        duracion_min = int(dur_str) if dur_str else None
+        try:
+            duracion_min = int(dur_str) if dur_str else 60
+        except ValueError:
+            duracion_min = 60
 
-        # Estado
-        estado = request.form.get("estado", "PROGRAMADA")
+        # ---------------------------
+        # 3) Estado
+        # ---------------------------
+        estado = (request.form.get("estado") or "PROGRAMADA").strip()
         if estado not in ESTADOS_CIRUGIA:
             estado = "PROGRAMADA"
-        
 
-        # Campos obligatorios v2
+        # ---------------------------
+        # 4) Campos principales
+        # ---------------------------
         quirofano = (request.form.get("quirofano") or "").strip()
-        paciente = (request.form.get("paciente") or "").strip()
+        paciente  = (request.form.get("paciente") or "").strip()
+
+        telefono = (request.form.get("telefono") or "").strip() or None
+
         folio_expediente = (request.form.get("folio_expediente") or "").strip()
+        especialidad = (request.form.get("especialidad") or "").strip() or None
         procedimiento = (request.form.get("procedimiento") or "").strip()
 
         cirujano = (request.form.get("cirujano") or "").strip()
@@ -816,7 +830,7 @@ def nueva_cirugia():
         if sexo not in SEXOS:
             return "Sexo inválido", 400
 
-        # Edad obligatoria y razonable
+        # Edad
         try:
             edad = int((request.form.get("edad") or "").strip())
             if edad < 0 or edad > 120:
@@ -824,15 +838,14 @@ def nueva_cirugia():
         except:
             return "Edad inválida", 400
 
-        # Indicaciones (opcional)
         indicaciones = (request.form.get("indicaciones_especiales") or "").strip() or None
 
-        # Validación mínima pro
+        # ---------------------------
+        # 5) Validación mínima PRO
+        # ---------------------------
         obligatorios = [
             ("quirófano", quirofano),
             ("paciente", paciente),
-            ("edad", str(edad) if edad is not None else ""),
-            ("sexo", sexo),
             ("folio/expediente", folio_expediente),
             ("procedimiento", procedimiento),
             ("cirujano", cirujano),
@@ -841,11 +854,13 @@ def nueva_cirugia():
             ("instrumentista", instrumentista),
             ("programó", programo),
         ]
-        faltan = [name for name, val in obligatorios if not (val and str(val).strip())]
+        faltan = [name for name, val in obligatorios if not val]
         if faltan:
             return f"Faltan campos obligatorios: {', '.join(faltan)}", 400
 
-        # --- Foto obligatoria (orden física)
+        # ---------------------------
+        # 6) Foto obligatoria
+        # ---------------------------
         file = request.files.get("orden_foto")
         if not file or not file.filename:
             return "La foto de la orden física es obligatoria.", 400
@@ -854,44 +869,49 @@ def nueva_cirugia():
 
         original = secure_filename(file.filename)
         new_name = build_cirugia_photo_filename(original, fecha, folio_expediente)
+
         save_path = os.path.join(app.config["CIRUGIA_UPLOAD_FOLDER"], new_name)
         file.save(save_path)
 
-        # Guardamos path relativo (como en farmacia)
+        # ✅ lo que guardas en DB (igual estilo que farmacia)
         rel_path = f"uploads/cirugias/{new_name}"
 
+        # ---------------------------
+        # 7) Crear cirugía (compat con DB legacy Railway)
+        # ---------------------------
         c = Cirugia(
-    fecha=fecha,
-    hora_inicio=hora_inicio,
-    duracion_min=duracion_min,
-    quirofano=quirofano,
+            fecha=fecha,
+            hora_inicio=hora_inicio,
+            duracion_min=duracion_min,
+            quirofano=quirofano,
 
-    paciente=paciente,
-    paciente_nombre=paciente,  # ✅ ESTA ES LA CLAVE
+            paciente=paciente,
+            paciente_nombre=paciente,  # ✅ legacy Railway NOT NULL
 
-    edad=edad,
-    sexo=sexo,
-    telefono=telefono,
+            edad=edad,
+            sexo=sexo,
+            telefono=telefono,
 
-    folio_expediente=folio_expediente,
-    especialidad=(request.form.get("especialidad") or "").strip() or None,
-    procedimiento=procedimiento,
+            folio_expediente=folio_expediente,
+            especialidad=especialidad,
+            procedimiento=procedimiento,
 
-    cirujano=cirujano,
-    anestesiologo=anestesiologo,
-    ayudantes=ayudantes,
-    instrumentista=instrumentista,
+            cirujano=cirujano,
+            anestesiologo=anestesiologo,
+            ayudantes=ayudantes,
+            instrumentista=instrumentista,
 
-    indicaciones_especiales=indicaciones,
-    estado=estado,
-    programo=programo,
-    orden_foto_path=orden_foto_path,
-)
+            indicaciones_especiales=indicaciones,
+            estado=estado,
+            programo=programo,
 
+            orden_foto_path=rel_path,  # ✅ aquí estaba tu bug
+        )
 
         db.session.add(c)
         db.session.flush()
 
+        # Evento auditoría
         db.session.add(CirugiaEvento(
             cirugia_id=c.id,
             tipo="CREADA",
@@ -900,10 +920,10 @@ def nueva_cirugia():
         ))
 
         db.session.commit()
-
         return redirect(url_for("cirugias", fecha=fecha.strftime("%Y-%m-%d")))
 
     return render_template("cirugias/nueva.html", estados=ESTADOS_CIRUGIA, sexos=SEXOS)
+
 
 
 @app.route("/cirugias/<int:cirugia_id>/estado", methods=["POST"])

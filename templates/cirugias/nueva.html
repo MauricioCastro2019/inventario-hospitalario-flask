@@ -16,8 +16,7 @@
   </div>
 
   <div class="hmv-card">
-
-    <form method="post" enctype="multipart/form-data" class="row g-3">
+    <form method="post" enctype="multipart/form-data" class="row g-3" id="form_nueva_cirugia">
 
       <!-- Programación -->
       <div class="hmv-section" style="margin-top:0;">
@@ -35,9 +34,17 @@
           </div>
 
           <div class="col-md-3">
-            <label class="form-label">Duración (min)</label>
-            <input type="number" name="duracion_min" class="form-control" min="10" max="1440" placeholder="Ej. 60">
-            <div class="form-text">Opcional. Si la dejas vacía, queda sin duración registrada.</div>
+            <label class="form-label">Duración (min) *</label>
+            <input
+              type="number"
+              name="duracion_min"
+              class="form-control"
+              min="10"
+              max="1440"
+              value="60"
+              required
+            >
+            <div class="form-text">Obligatoria. Estimación inicial (10–1440 min).</div>
           </div>
 
           <div class="col-md-3">
@@ -150,68 +157,30 @@
 
           <div class="col-12">
             <label class="form-label">Foto de la orden física *</label>
-          
-            <div class="col-12">
-              <label class="form-label">Foto de la orden física *</label>
-            
-              <!-- Input único (REQUIRED) -->
-              <input
-                type="file"
-                name="orden_foto"
-                id="orden_foto"
-                accept="image/*"
-                required
-                hidden
-              >
-            
-              <div class="d-flex gap-2 flex-wrap" style="margin-top:6px;">
-                <button type="button" class="btn btn-hmv-outline" id="btn_camara">
-                  📷 Cámara
-                </button>
-            
-                <button type="button" class="btn btn-hmv-outline" id="btn_galeria">
-                  🖼️ Galería
-                </button>
-              </div>
-            
-              <div class="form-text" id="orden_foto_nombre" style="margin-top:8px;">
-                Obligatoria. Formatos: imágenes (JPG/PNG/WEBP).
-              </div>
+
+            <!-- UN SOLO INPUT real (más estable en móvil) -->
+            <input
+              type="file"
+              name="orden_foto"
+              id="orden_foto"
+              accept="image/*"
+              hidden
+              required
+            >
+
+            <div class="d-flex gap-2 flex-wrap" style="margin-top:6px;">
+              <button type="button" class="btn btn-hmv-outline" id="btn_orden_camara">
+                📷 Cámara
+              </button>
+
+              <button type="button" class="btn btn-hmv-outline" id="btn_orden_galeria">
+                🖼️ Galería
+              </button>
             </div>
-            
-            <script>
-              (function () {
-                const input = document.getElementById("orden_foto");
-                const txt = document.getElementById("orden_foto_nombre");
-                const btnCam = document.getElementById("btn_camara");
-                const btnGal = document.getElementById("btn_galeria");
-            
-                btnCam.addEventListener("click", () => {
-                  input.setAttribute("capture", "environment"); // fuerza cámara en móvil
-                  input.click();
-                });
-            
-                btnGal.addEventListener("click", () => {
-                  input.removeAttribute("capture"); // galería normal
-                  input.click();
-                });
-            
-                input.addEventListener("change", () => {
-                  if (input.files && input.files.length) {
-                    txt.textContent = "Seleccionada: " + input.files[0].name;
-                  } else {
-                    txt.textContent = "Obligatoria. Formatos: imágenes (JPG/PNG/WEBP).";
-                  }
-                });
-              })();
-            </script>
-            
-          
+
             <div class="form-text" id="orden_foto_nombre" style="margin-top:8px;">
-              Obligatoria. Formatos: imágenes (JPG/PNG/WEBP).
+              Obligatoria. Sube una imagen (JPG/PNG/WEBP).
             </div>
-          </div>
-          
           </div>
         </div>
       </div>
@@ -225,5 +194,50 @@
     </form>
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("form_nueva_cirugia");
+    const input = document.getElementById("orden_foto");
+    const info = document.getElementById("orden_foto_nombre");
+
+    const btnCam = document.getElementById("btn_orden_camara");
+    const btnGal = document.getElementById("btn_orden_galeria");
+
+    function setNombre(file){
+      if (!info) return;
+      info.textContent = file
+        ? `Seleccionado: ${file.name}`
+        : "Obligatoria. Sube una imagen (JPG/PNG/WEBP).";
+    }
+
+    btnCam?.addEventListener("click", () => {
+      // Forzar cámara trasera cuando aplique
+      input.setAttribute("capture", "environment");
+      input.click();
+    });
+
+    btnGal?.addEventListener("click", () => {
+      // Galería (sin capture)
+      input.removeAttribute("capture");
+      input.click();
+    });
+
+    input?.addEventListener("change", () => {
+      setNombre(input.files && input.files[0] ? input.files[0] : null);
+    });
+
+    // Asegurar archivo antes de enviar (móvil a veces ignora required si hidden)
+    form?.addEventListener("submit", (e) => {
+      const file = input.files && input.files[0] ? input.files[0] : null;
+      if (!file) {
+        e.preventDefault();
+        setNombre(null);
+        alert("La foto de la orden física es obligatoria.");
+        return;
+      }
+    });
+  });
+</script>
 
 {% endblock %}

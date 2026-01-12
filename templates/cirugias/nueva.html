@@ -150,8 +150,40 @@
 
           <div class="col-12">
             <label class="form-label">Foto de la orden física *</label>
-            <input type="file" name="orden_foto" class="form-control" accept=".jpg,.jpeg,.png,.webp" required>
-            <div class="form-text">Obligatoria. Formatos: JPG / PNG / WEBP.</div>
+          
+            <div class="d-flex gap-2 flex-wrap" style="margin-top:6px;">
+              <!-- Cámara -->
+              <label class="btn btn-hmv-outline" style="cursor:pointer;">
+                📷 Cámara
+                <input
+                  type="file"
+                  name="orden_foto"
+                  id="orden_foto_camara"
+                  accept="image/*"
+                  capture="environment"
+                  hidden
+                  required
+                >
+              </label>
+          
+              <!-- Galería -->
+              <label class="btn btn-hmv-outline" style="cursor:pointer;">
+                🖼️ Galería
+                <input
+                  type="file"
+                  name="orden_foto"
+                  id="orden_foto_galeria"
+                  accept="image/*"
+                  hidden
+                >
+              </label>
+            </div>
+          
+            <div class="form-text" id="orden_foto_nombre" style="margin-top:8px;">
+              Obligatoria. Formatos: imágenes (JPG/PNG/WEBP).
+            </div>
+          </div>
+          
           </div>
         </div>
       </div>

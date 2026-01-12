@@ -181,9 +181,39 @@
 
         <div class="hmv-field" style="margin-top:12px;">
           <label>Imagen</label>
-          <input type="file" name="imagen">
+        
+          <div class="hmv-form-grid hmv-cols-2" style="gap:10px; margin-top:8px;">
+            <!-- Cámara -->
+            <label class="hmv-btn-outline" style="display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;">
+              📷 Cámara
+              <input
+                type="file"
+                name="imagen"
+                id="imagen_camara"
+                accept="image/*"
+                capture="environment"
+                hidden
+              >
+            </label>
+        
+            <!-- Galería -->
+            <label class="hmv-btn-outline" style="display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;">
+              🖼️ Galería
+              <input
+                type="file"
+                name="imagen"
+                id="imagen_galeria"
+                accept="image/*"
+                hidden
+              >
+            </label>
+          </div>
+        
+          <div class="hmv-help" style="margin-top:8px;" id="imagen_nombre">
+            Sin imagen seleccionada.
+          </div>
         </div>
-      </div>
+        
 
       <!-- Acciones abajo (UX) -->
       <div class="hmv-actions" style="margin-top:14px;">
@@ -254,6 +284,18 @@
     const precioEl = document.getElementById("precio");
     precioEl.addEventListener("input", () => {
       precioManual = precioEl.value.trim() !== "";
+      const cam = document.getElementById("imagen_camara");
+const gal = document.getElementById("imagen_galeria");
+const label = document.getElementById("imagen_nombre");
+
+function setNombre(file){
+  if (!label) return;
+  label.textContent = file ? `Seleccionado: ${file.name}` : "Sin imagen seleccionada.";
+}
+
+cam?.addEventListener("change", () => setNombre(cam.files?.[0]));
+gal?.addEventListener("change", () => setNombre(gal.files?.[0]));
+
     });
   });
 </script>

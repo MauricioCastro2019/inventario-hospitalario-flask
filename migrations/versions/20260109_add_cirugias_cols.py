@@ -1,5 +1,6 @@
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy import inspect
 
 revision = "20260109_add_cirugias_cols"
 down_revision = None
@@ -7,52 +8,81 @@ branch_labels = None
 depends_on = None
 
 
+def _col_exists(conn, table_name: str, col_name: str) -> bool:
+    insp = inspect(conn)
+    try:
+        cols = insp.get_columns(table_name)
+    except Exception:
+        return False
+    return any(c["name"] == col_name for c in cols)
+
+
+def _add_col_if_missing(table_name: str, column: sa.Column):
+    conn = op.get_bind()
+    if not _col_exists(conn, table_name, column.name):
+        op.add_column(table_name, column)
+
 
 def upgrade():
-    # Agrega columnas si no existen (Postgres soporta IF NOT EXISTS)
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS paciente VARCHAR(160);")
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS edad INTEGER;")
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS sexo VARCHAR(10);")
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS telefono VARCHAR(30);")
+    # ✅ Cross-DB (SQLite/Postgres): agrega SOLO si falta
+    table = "cirugias"
 
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS folio_expediente VARCHAR(80);")
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS especialidad VARCHAR(120);")
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS procedimiento VARCHAR(200);")
+    _add_col_if_missing(table, sa.Column("paciente", sa.String(length=160), nullable=True))
+    _add_col_if_missing(table, sa.Column("edad", sa.Integer(), nullable=True))
+    _add_col_if_missing(table, sa.Column("sexo", sa.String(length=10), nullable=True))
+    _add_col_if_missing(table, sa.Column("telefono", sa.String(length=30), nullable=True))
 
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS cirujano VARCHAR(160);")
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS anestesiologo VARCHAR(160);")
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS ayudantes TEXT;")
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS instrumentista VARCHAR(160);")
+    _add_col_if_missing(table, sa.Column("folio_expediente", sa.String(length=80), nullable=True))
+    _add_col_if_missing(table, sa.Column("especialidad", sa.String(length=120), nullable=True))
+    _add_col_if_missing(table, sa.Column("procedimiento", sa.String(length=200), nullable=True))
 
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS indicaciones_especiales TEXT;")
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS estado VARCHAR(30);")
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS programo VARCHAR(160);")
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS orden_foto_path VARCHAR(255);")
+    _add_col_if_missing(table, sa.Column("cirujano", sa.String(length=160), nullable=True))
+    _add_col_if_missing(table, sa.Column("anestesiologo", sa.String(length=160), nullable=True))
+    _add_col_if_missing(table, sa.Column("ayudantes", sa.Text(), nullable=True))
+    _add_col_if_missing(table, sa.Column("instrumentista", sa.String(length=160), nullable=True))
 
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS created_at TIMESTAMP;")
-    op.execute("ALTER TABLE cirugias ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP;")
+    _add_col_if_missing(table, sa.Column("indicaciones_especiales", sa.Text(), nullable=True))
+    _add_col_if_missing(table, sa.Column("estado", sa.String(length=30), nullable=True))
+    _add_col_if_missing(table, sa.Column("programo", sa.String(length=160), nullable=True))
+    _add_col_if_missing(table, sa.Column("orden_foto_path", sa.String(length=255), nullable=True))
+
+    # Timestamps: usamos DateTime; en Postgres será timestamp, en SQLite text-ish.
+    _add_col_if_missing(table, sa.Column("created_at", sa.DateTime(), nullable=True))
+    _add_col_if_missing(table, sa.Column("updated_at", sa.DateTime(), nullable=True))
 
 
 def downgrade():
-    # (Opcional) reversa
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS updated_at;")
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS created_at;")
+    # ⚠️ OJO: SQLite no siempre soporta DROP COLUMN según versión.
+    # Lo dejamos "best effort": en Postgres funciona; en SQLite se intenta y si falla, no truena la migración.
+    conn = op.get_bind()
+    dialect = conn.dialect.name
+    table = "cirugias"
 
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS orden_foto_path;")
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS programo;")
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS estado;")
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS indicaciones_especiales;")
+    cols_to_drop = [
+        "updated_at",
+        "created_at",
+        "orden_foto_path",
+        "programo",
+        "estado",
+        "indicaciones_especiales",
+        "instrumentista",
+        "ayudantes",
+        "anestesiologo",
+        "cirujano",
+        "procedimiento",
+        "especialidad",
+        "folio_expediente",
+        "telefono",
+        "sexo",
+        "edad",
+        "paciente",
+    ]
 
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS instrumentista;")
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS ayudantes;")
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS anestesiologo;")
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS cirujano;")
-
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS procedimiento;")
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS especialidad;")
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS folio_expediente;")
-
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS telefono;")
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS sexo;")
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS edad;")
-    op.execute("ALTER TABLE cirugias DROP COLUMN IF EXISTS paciente;")
+    for col in cols_to_drop:
+        if _col_exists(conn, table, col):
+            try:
+                op.drop_column(table, col)
+            except Exception:
+                # En SQLite viejo puede fallar; no rompemos downgrade.
+                if dialect != "sqlite":
+                    raise

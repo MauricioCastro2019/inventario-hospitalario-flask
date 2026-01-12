@@ -210,41 +210,58 @@ class FarmaciaPendienteFoto(db.Model):
 class Cirugia(db.Model):
     """
     Cirugía v2 (orden digital complementaria al papel).
+    Compat con DB legacy (Railway): paciente_nombre.
     """
     __tablename__ = "cirugias"
 
     id = db.Column(db.Integer, primary_key=True)
 
-    # Programación (obligatorias según tu lista)
+    # ---------------------------
+    # Programación
+    # ---------------------------
     fecha = db.Column(db.Date, nullable=False, index=True)
     hora_inicio = db.Column(db.Time, nullable=False)
-    duracion_min = db.Column(db.Integer, nullable=True)  # opcional
+    duracion_min = db.Column(db.Integer, nullable=True)  # opcional (pero en Railway puede ser NOT NULL, ya lo resolvimos en form/backend)
     quirofano = db.Column(db.String(50), nullable=False, index=True)
 
-    # Paciente (obligatorias)
+    # ---------------------------
+    # Paciente
+    # ---------------------------
+    # Nuevo campo (tu app actual)
     paciente = db.Column(db.String(160), nullable=False)
+
+    # Legacy (DB vieja): Railway tiene paciente_nombre NOT NULL
+    # Lo dejamos nullable=True en el modelo para no forzar migración destructiva.
+    # En el POST llenamos ambos para evitar IntegrityError.
+    paciente_nombre = db.Column(db.String(160), nullable=True)  # legacy DB (Railway)
     edad = db.Column(db.Integer, nullable=False)
     sexo = db.Column(db.String(10), nullable=False)  # "M", "F", "Otro"
-    telefono = db.Column(db.String(30), nullable=True)  # luego
+    telefono = db.Column(db.String(30), nullable=True)
 
+    # ---------------------------
     # Admin/Clínico
+    # ---------------------------
     folio_expediente = db.Column(db.String(80), nullable=False, index=True)
-    especialidad = db.Column(db.String(120), nullable=True, index=True)  # opcional luego
+    especialidad = db.Column(db.String(120), nullable=True, index=True)
     procedimiento = db.Column(db.String(200), nullable=False)
 
-    # Equipo (obligatorios como dijiste)
+    # ---------------------------
+    # Equipo
+    # ---------------------------
     cirujano = db.Column(db.String(160), nullable=False, index=True)
     anestesiologo = db.Column(db.String(160), nullable=False, index=True)
     ayudantes = db.Column(db.Text, nullable=False)
     instrumentista = db.Column(db.String(160), nullable=False)
 
+    # ---------------------------
     # Observaciones
+    # ---------------------------
     indicaciones_especiales = db.Column(db.Text, nullable=True)
 
-    # Estado
+    # ---------------------------
+    # Estado / Control
+    # ---------------------------
     estado = db.Column(db.String(30), nullable=False, default="PROGRAMADA", index=True)
-
-    # Control
     programo = db.Column(db.String(160), nullable=False)
 
     # Foto orden física (obligatoria)
@@ -260,7 +277,6 @@ class Cirugia(db.Model):
             name="ck_cirugia_duracion"
         ),
     )
-
 
 class CirugiaEvento(db.Model):
     __tablename__ = "cirugia_eventos"
@@ -845,30 +861,33 @@ def nueva_cirugia():
         rel_path = f"uploads/cirugias/{new_name}"
 
         c = Cirugia(
-            fecha=fecha,
-            hora_inicio=hora_inicio,
-            duracion_min=duracion_min,
-            quirofano=quirofano,
+    fecha=fecha,
+    hora_inicio=hora_inicio,
+    duracion_min=duracion_min,
+    quirofano=quirofano,
 
-            paciente=paciente,
-            edad=edad,
-            sexo=sexo,
+    paciente=paciente,
+    paciente_nombre=paciente,  # ✅ ESTA ES LA CLAVE
 
-            folio_expediente=folio_expediente,
-            especialidad=(request.form.get("especialidad") or "").strip() or None,
-            procedimiento=procedimiento,
+    edad=edad,
+    sexo=sexo,
+    telefono=telefono,
 
-            cirujano=cirujano,
-            anestesiologo=anestesiologo,
-            ayudantes=ayudantes,
-            instrumentista=instrumentista,
+    folio_expediente=folio_expediente,
+    especialidad=(request.form.get("especialidad") or "").strip() or None,
+    procedimiento=procedimiento,
 
-            indicaciones_especiales=indicaciones,
-            estado=estado,
-            programo=programo,
+    cirujano=cirujano,
+    anestesiologo=anestesiologo,
+    ayudantes=ayudantes,
+    instrumentista=instrumentista,
 
-            orden_foto_path=rel_path,
-        )
+    indicaciones_especiales=indicaciones,
+    estado=estado,
+    programo=programo,
+    orden_foto_path=orden_foto_path,
+)
+
 
         db.session.add(c)
         db.session.flush()

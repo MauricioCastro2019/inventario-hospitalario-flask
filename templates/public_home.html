@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Hospital Médica Vida | Atención humana, segura y profesional</title>
+  <meta name="description" content="Hospital Médica Vida: atención médica profesional, cálida y segura. Urgencias, hospitalización, quirófano, ginecología, cirugía, laboratorio y más. Agenda por WhatsApp.">
+  <meta name="theme-color" content="#5A1D6D">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Hospital Médica Vida">
+  <meta property="og:description" content="Atención humana, segura y profesional. Agenda por WhatsApp.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="{{ url_for('static', filename='branding/logo_hmv.png') }}">
+
+  <!-- Fuentes (opcional pero pro) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/public_hmv.css') }}">
+</head>
+
+<body>
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="container topbar-inner">
+      <div class="topbar-left">
+        <span class="pill">Urgencias 24/7</span>
+        <span class="topbar-text">Atención humana • Seguridad • Confianza</span>
+      </div>
+
+      <div class="topbar-right">
+        <a class="topbar-link" href="tel:+524777181921">📞 477 718 1921</a>
+        <a class="topbar-link" href="mailto:hmedicavida@hotmail.com">✉️ hmedicavida@hotmail.com</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header / Navbar -->
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="#inicio" aria-label="Ir al inicio">
+        <img class="brand-logo" src="{{ url_for('static', filename='branding/logo_hmv.png') }}" alt="Hospital Médica Vida">
+        <div class="brand-text">
+          <div class="brand-name">Hospital Médica Vida</div>
+          <div class="brand-sub">León, Guanajuato</div>
+        </div>
+      </a>
+
+      <nav class="nav-links" id="navLinks" aria-label="Menú principal">
+        <a href="#servicios">Servicios</a>
+        <a href="#especialidades">Especialidades</a>
+        <a href="#instalaciones">Instalaciones</a>
+        <a href="#directorio">Directorio</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a class="btn btn-ghost" href="#contacto">Ver ubicación</a>
+
+        <!-- Cambia el número o mensaje aquí -->
+        <a class="btn btn-primary"
+           target="_blank"
+           rel="noopener"
+           href="https://wa.me/524777181921?text=Hola%20Hospital%20M%C3%A9dica%20Vida.%20Quiero%20informaci%C3%B3n%20y%20agendar%20una%20cita.">
+          Agendar por WhatsApp
+        </a>
+
+        <button class="burger" id="burgerBtn" aria-label="Abrir menú" aria-expanded="false" aria-controls="navMobile">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Menú móvil -->
+    <div class="nav-mobile" id="navMobile" hidden>
+      <div class="container nav-mobile-inner">
+        <a href="#servicios" class="nav-mobile-link">Servicios</a>
+        <a href="#especialidades" class="nav-mobile-link">Especialidades</a>
+        <a href="#instalaciones" class="nav-mobile-link">Instalaciones</a>
+        <a href="#directorio" class="nav-mobile-link">Directorio</a>
+        <a href="#contacto" class="nav-mobile-link">Contacto</a>
+
+        <div class="nav-mobile-cta">
+          <a class="btn btn-primary btn-block"
+             target="_blank" rel="noopener"
+             href="https://wa.me/524777181921?text=Hola%20Hospital%20M%C3%A9dica%20Vida.%20Quiero%20informaci%C3%B3n%20y%20agendar%20una%20cita.">
+            Agendar por WhatsApp
+          </a>
+          <a class="btn btn-ghost btn-block" href="tel:+524777181921">Llamar</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <main id="inicio" class="hero">
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <div class="badge">
+          <span class="dot"></span>
+          Hospital Médica Vida • Atención integral
+        </div>
+
+        <h1>
+          Salud con calidez humana,<br>
+          <span class="grad">seguridad clínica</span> y trato profesional.
+        </h1>
+
+        <p class="lead">
+          Un hospital pensado para que te sientas acompañado y en buenas manos:
+          procesos claros, espacios limpios, equipo médico confiable y atención rápida.
+        </p>
+
+        <div class="hero-cta">
+          <a class="btn btn-primary"
+             target="_blank" rel="noopener"
+             href="https://wa.me/524777181921?text=Hola%20Hospital%20M%C3%A9dica%20Vida.%20Quiero%20informaci%C3%B3n%20y%20agendar%20una%20cita.">
+            Agendar por WhatsApp
+          </a>
+
+          <a class="btn btn-ghost" href="#especialidades">Ver especialidades</a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat">
+            <div class="stat-num">24/7</div>
+            <div class="stat-label">Urgencias</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">Quirófano</div>
+            <div class="stat-label">Programación & control</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">Atención</div>
+            <div class="stat-label">Humana y clara</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="hero-card-top">
+          <div class="hero-card-title">Citas y orientación</div>
+          <div class="hero-card-sub">Te respondemos rápido por WhatsApp</div>
+        </div>
+
+        <div class="mini-grid">
+          <div class="mini">
+            <div class="mini-ico">⚡</div>
+            <div class="mini-txt">
+              <div class="mini-ttl">Respuesta ágil</div>
+              <div class="mini-sub">para dudas y costos</div>
+            </div>
+          </div>
+          <div class="mini">
+            <div class="mini-ico">🧾</div>
+            <div class="mini-txt">
+              <div class="mini-ttl">Información clara</div>
+              <div class="mini-sub">sin vueltas</div>
+            </div>
+          </div>
+          <div class="mini">
+            <div class="mini-ico">🛡️</div>
+            <div class="mini-txt">
+              <div class="mini-ttl">Seguridad</div>
+              <div class="mini-sub">protocolos y orden</div>
+            </div>
+          </div>
+          <div class="mini">
+            <div class="mini-ico">🤍</div>
+            <div class="mini-txt">
+              <div class="mini-ttl">Trato humano</div>
+              <div class="mini-sub">acompañamiento real</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-card-cta">
+          <a class="btn btn-primary btn-block"
+             target="_blank" rel="noopener"
+             href="https://wa.me/524777181921?text=Hola%20Hospital%20M%C3%A9dica%20Vida.%20Quiero%20informaci%C3%B3n%20y%20agendar%20una%20cita.">
+            Escribir por WhatsApp
+          </a>
+          <a class="btn btn-ghost btn-block" href="tel:+524777181921">Llamar al hospital</a>
+        </div>
+
+        <div class="hero-note">
+          <span class="spark">✦</span>
+          <span>Si es una urgencia, acude directamente. Estamos listos.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-glow" aria-hidden="true"></div>
+  </main>
+
+  <!-- Servicios -->
+  <section id="servicios" class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>Servicios</h2>
+        <p>Lo esencial, bien hecho. Atención completa con enfoque humano y profesional.</p>
+      </div>
+
+      <div class="cards">
+        <article class="card">
+          <div class="card-ico">🚑</div>
+          <h3>Urgencias 24/7</h3>
+          <p>Atención inmediata con triage y seguimiento médico claro.</p>
+        </article>
+
+        <article class="card">
+          <div class="card-ico">🏥</div>
+          <h3>Hospitalización</h3>
+          <p>Habitaciones cómodas, limpias y con vigilancia del cuidado.</p>
+        </article>
+
+        <article class="card">
+          <div class="card-ico">🩺</div>
+          <h3>Consulta médica</h3>
+          <p>Valoración profesional, explicación sencilla y plan de acción.</p>
+        </article>
+
+        <article class="card">
+          <div class="card-ico">🧪</div>
+          <h3>Laboratorio / estudios</h3>
+          <p>Soporte diagnóstico para decisiones médicas más precisas.</p>
+        </article>
+
+        <article class="card">
+          <div class="card-ico">🧠</div>
+          <h3>Procedimientos</h3>
+          <p>Control, evidencia y orden para brindar confianza.</p>
+        </article>
+
+        <article class="card">
+          <div class="card-ico">🛏️</div>
+          <h3>Cirugía programada</h3>
+          <p>Gestión clara de horarios, equipo y preparación preoperatoria.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Especialidades -->
+  <section id="especialidades" class="section section-alt">
+    <div class="container">
+      <div class="section-head">
+        <h2>Especialidades</h2>
+        <p>Un directorio médico confiable para atenderte como mereces.</p>
+      </div>
+
+      <div class="chips">
+        <span class="chip">Ginecología</span>
+        <span class="chip">Cirugía General</span>
+        <span class="chip">Anestesiología</span>
+        <span class="chip">Medicina Interna</span>
+        <span class="chip">Pediatría</span>
+        <span class="chip">Traumatología</span>
+        <span class="chip">Urología</span>
+        <span class="chip">Plástica / Estética</span>
+        <span class="chip">Más especialidades</span>
+      </div>
+
+      <div class="two-col">
+        <div class="panel">
+          <h3>Visión</h3>
+          <p>
+            Ser un hospital que combine <b>calidad médica</b>, <b>trato humano</b> y <b>procesos modernos</b>,
+            construyendo confianza real en cada paciente.
+          </p>
+        </div>
+
+        <div class="panel">
+          <h3>Misión</h3>
+          <p>
+            Brindar atención integral con <b>seguridad</b>, <b>claridad</b> y <b>respeto</b>, cuidando cada detalle:
+            desde la recepción hasta el seguimiento.
+          </p>
+        </div>
+      </div>
+
+      <div class="cta-band">
+        <div>
+          <div class="cta-band-title">¿Buscas orientación rápida?</div>
+          <div class="cta-band-sub">Te ayudamos a encontrar la especialidad correcta.</div>
+        </div>
+        <a class="btn btn-primary"
+           target="_blank" rel="noopener"
+           href="https://wa.me/524777181921?text=Hola%20Hospital%20M%C3%A9dica%20Vida.%20%C2%BFMe%20pueden%20orientar%20sobre%20qu%C3%A9%20especialidad%20necesito%3F">
+          Quiero orientación
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Instalaciones / confianza -->
+  <section id="instalaciones" class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>Instalaciones y confianza</h2>
+        <p>Ambientes limpios, ordenados y pensados para una atención segura.</p>
+      </div>
+
+      <div class="feature-grid">
+        <div class="feature">
+          <div class="feature-ico">✨</div>
+          <div>
+            <h3>Limpieza y orden</h3>
+            <p>Protocolos y disciplina para cuidar lo más importante: tu salud.</p>
+          </div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-ico">📋</div>
+          <div>
+            <h3>Procesos claros</h3>
+            <p>Información entendible, seguimiento y comunicación real.</p>
+          </div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-ico">🔒</div>
+          <div>
+            <h3>Seguridad</h3>
+            <p>Enfoque en control, evidencia y cuidado integral.</p>
+          </div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-ico">💜</div>
+          <div>
+            <h3>Trato humano</h3>
+            <p>Somos firmes con la calidad y cálidos con las personas.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Directorio -->
+  <section id="directorio" class="section section-alt">
+    <div class="container">
+      <div class="section-head">
+        <h2>Directorio médico</h2>
+        <p>Un panel elegante para mostrar doctores. (Aquí lo conectamos después a tu módulo real.)</p>
+      </div>
+
+      <div class="doctors">
+        <article class="doc">
+          <div class="avatar">DR</div>
+          <div class="doc-info">
+            <div class="doc-name">Nombre del doctor</div>
+            <div class="doc-role">Especialidad</div>
+            <div class="doc-meta">Cédula • Horario • Consultorio</div>
+          </div>
+          <a class="btn btn-ghost" href="#contacto">Ver contacto</a>
+        </article>
+
+        <article class="doc">
+          <div class="avatar">DR</div>
+          <div class="doc-info">
+            <div class="doc-name">Nombre del doctor</div>
+            <div class="doc-role">Especialidad</div>
+            <div class="doc-meta">Cédula • Horario • Consultorio</div>
+          </div>
+          <a class="btn btn-ghost" href="#contacto">Ver contacto</a>
+        </article>
+
+        <article class="doc">
+          <div class="avatar">DR</div>
+          <div class="doc-info">
+            <div class="doc-name">Nombre del doctor</div>
+            <div class="doc-role">Especialidad</div>
+            <div class="doc-meta">Cédula • Horario • Consultorio</div>
+          </div>
+          <a class="btn btn-ghost" href="#contacto">Ver contacto</a>
+        </article>
+      </div>
+
+      <div class="hint">
+        <b>Pro tip:</b> cuando quieras, te conecto esto a una tabla `Doctores` en tu Flask + Admin para alta/baja.
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonios -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>Lo que importa: la experiencia</h2>
+        <p>Espacio para testimonios reales (cuando los tengas, se ve brutal).</p>
+      </div>
+
+      <div class="quotes">
+        <figure class="quote">
+          <blockquote>
+            “Me explicaron todo con claridad. Se siente un hospital con orden y corazón.”
+          </blockquote>
+          <figcaption>Paciente • Atención en urgencias</figcaption>
+        </figure>
+
+        <figure class="quote">
+          <blockquote>
+            “Instalaciones limpias, buen trato, y un seguimiento que da confianza.”
+          </blockquote>
+          <figcaption>Familiar • Hospitalización</figcaption>
+        </figure>
+
+        <figure class="quote">
+          <blockquote>
+            “Rápidos para orientar por WhatsApp. Eso ya es otro nivel.”
+          </blockquote>
+          <figcaption>Paciente • Cita programada</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contacto -->
+  <section id="contacto" class="section section-alt">
+    <div class="container">
+      <div class="section-head">
+        <h2>Contacto</h2>
+        <p>Agenda, pregunta costos, solicita orientación. Te respondemos.</p>
+      </div>
+
+      <div class="contact">
+        <div class="contact-card">
+          <h3>Hospital Médica Vida</h3>
+
+          <div class="contact-row">
+            <div class="contact-ico">📍</div>
+            <div>
+              <div class="contact-label">Ubicación</div>
+              <div class="contact-val">León, Guanajuato (edita aquí tu dirección exacta)</div>
+            </div>
+          </div>
+
+          <div class="contact-row">
+            <div class="contact-ico">📞</div>
+            <div>
+              <div class="contact-label">Teléfono</div>
+              <a class="contact-link" href="tel:+524777181921">477 718 1921</a>
+            </div>
+          </div>
+
+          <div class="contact-row">
+            <div class="contact-ico">✉️</div>
+            <div>
+              <div class="contact-label">Correo</div>
+              <a class="contact-link" href="mailto:hmedicavida@hotmail.com">hmedicavida@hotmail.com</a>
+            </div>
+          </div>
+
+          <div class="contact-actions">
+            <a class="btn btn-primary btn-block"
+               target="_blank" rel="noopener"
+               href="https://wa.me/524777181921?text=Hola%20Hospital%20M%C3%A9dica%20Vida.%20Quiero%20informaci%C3%B3n%20y%20agendar%20una%20cita.">
+              Agendar por WhatsApp
+            </a>
+            <a class="btn btn-ghost btn-block" href="#inicio">Volver arriba</a>
+          </div>
+
+          <div class="smallprint">
+            Horario administrativo sugerido: 9:00 a 17:00 • Urgencias 24/7
+          </div>
+        </div>
+
+        <div class="map-card">
+          <div class="map-head">
+            <div class="map-title">Mapa</div>
+            <div class="map-sub">Pega aquí tu iframe de Google Maps</div>
+          </div>
+
+          <!-- Reemplaza este placeholder con tu iframe -->
+          <div class="map-placeholder">
+            <div class="map-icon">🗺️</div>
+            <div class="map-text">
+              <b>Placeholder de mapa</b><br>
+              Cuando me pases la dirección exacta, te pongo el iframe listo.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-left">
+        <img class="footer-logo" src="{{ url_for('static', filename='branding/logo_hmv.png') }}" alt="Hospital Médica Vida">
+        <div>
+          <div class="footer-name">Hospital Médica Vida</div>
+          <div class="footer-sub">Cuidamos personas, con orden y corazón.</div>
+        </div>
+      </div>
+
+      <div class="footer-right">
+        <a href="#servicios">Servicios</a>
+        <a href="#especialidades">Especialidades</a>
+        <a href="#contacto">Contacto</a>
+        <span class="footer-copy">© {{ 2026 }} Médica Vida</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JS -->
+  <script src="{{ url_for('static', filename='js/public_hmv.js') }}"></script>
+</body>
+</html>

@@ -410,8 +410,11 @@ with app.app_context():
 
 @app.route("/")
 def home():
-    return redirect(url_for("dashboard"))
+    return redirect(url_for("web_publica"))
 
+@app.route("/web")
+def web_publica():
+    return render_template("public_home.html")
 
 @app.route("/productos")
 def productos():

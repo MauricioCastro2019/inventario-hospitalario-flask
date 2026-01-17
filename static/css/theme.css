@@ -634,3 +634,47 @@ input:focus, select:focus, textarea:focus{
     justify-content:center;
   }
 }
+.map-placeholder{
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.map-text{
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--hmv-gray);
+  line-height: 1.4;
+}
+
+.map-link{
+  align-self: flex-start;
+  font-weight: 700;
+  color: var(--hmv-primary);
+  text-decoration: none;
+}
+
+.map-link:hover{
+  text-decoration: underline;
+}
+
+.map-iframe iframe{
+  box-shadow: var(--hmv-shadow);
+}
+/* Card del mapa */
+.map-card.full-map{
+  border: 2px dashed #e5d9ee;       /* punteado */
+  border-radius: 20px;
+  overflow: hidden;                /* CLAVE */
+  height: 320px;                   /* ajusta si quieres */
+  background: #fff;
+  padding: 0;                      /* CLAVE */
+}
+
+/* Iframe ocupa TODO */
+.map-card.full-map iframe{
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}

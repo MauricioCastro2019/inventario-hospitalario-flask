@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ingresar | Hospital Médica Vida</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/public_hmv.css') }}">
+</head>
+<body>
+
+  <main class="section">
+    <div class="container" style="max-width:520px;">
+      <div class="section-head">
+        <h2>Ingresar</h2>
+        <p>Acceso para personal autorizado.</p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div style="margin-bottom:14px;">
+            {% for category, message in messages %}
+              <div class="hint">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <div class="card">
+        <form method="post" autocomplete="on">
+          <!-- ✅ NEXT integrado (NO vuelves a mover esto) -->
+          <input type="hidden" name="next" value="{{ next or '' }}">
+
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <label style="font-weight:800;">Usuario</label>
+            <input name="username" autocomplete="username"
+                   style="padding:12px;border-radius:14px;border:1px solid #E5E7EB;" required>
+
+            <label style="font-weight:800;">Contraseña</label>
+            <input name="password" type="password" autocomplete="current-password"
+                   style="padding:12px;border-radius:14px;border:1px solid #E5E7EB;" required>
+
+            <button class="btn btn-primary btn-block" type="submit">Ingresar</button>
+            <a class="btn btn-ghost btn-block" href="{{ url_for('web_publica') }}">Volver</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>

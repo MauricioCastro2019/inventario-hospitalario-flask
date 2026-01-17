@@ -14,10 +14,10 @@
   <meta property="og:type" content="website">
   <meta property="og:image" content="{{ url_for('static', filename='branding/logo_hmv.png') }}">
 
-  <!-- Fuentes (opcional pero pro) -->
+  <!-- Fuentes -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/public_hmv.css') }}">
@@ -28,7 +28,7 @@
   <div class="topbar">
     <div class="container topbar-inner">
       <div class="topbar-left">
-        <span class="pill">Urgencias 24/7</span>
+        <span class="pill">Consulta General 24/7</span>
         <span class="topbar-text">Atención humana • Seguridad • Confianza</span>
       </div>
 
@@ -59,9 +59,8 @@
       </nav>
 
       <div class="nav-actions">
-        <a class="btn btn-ghost" href="#contacto">Ver ubicación</a>
+        <a class="btn btn-ghost" href="{{ url_for('login') }}">Ingresar</a>
 
-        <!-- Cambia el número o mensaje aquí -->
         <a class="btn btn-primary"
            target="_blank"
            rel="noopener"
@@ -98,6 +97,9 @@
 
   <!-- Hero -->
   <main id="inicio" class="hero">
+    <!-- Glow debe ir primero para quedar detrás -->
+    <div class="hero-glow" aria-hidden="true"></div>
+
     <div class="container hero-inner">
       <div class="hero-copy">
         <div class="badge">
@@ -125,6 +127,7 @@
           <a class="btn btn-ghost" href="#especialidades">Ver especialidades</a>
         </div>
 
+        <!-- Quick actions: esto convierte MUY bien -->
         <div class="hero-stats">
           <div class="stat">
             <div class="stat-num">24/7</div>
@@ -135,13 +138,13 @@
             <div class="stat-label">Programación & control</div>
           </div>
           <div class="stat">
-            <div class="stat-num">Atención</div>
-            <div class="stat-label">Humana y clara</div>
+            <div class="stat-num">Ubicación</div>
+            <div class="stat-label">España 507, Col. Moderna</div>
           </div>
         </div>
       </div>
 
-      <div class="hero-card">
+      <aside class="hero-card" aria-label="Citas y orientación">
         <div class="hero-card-top">
           <div class="hero-card-title">Citas y orientación</div>
           <div class="hero-card-sub">Te respondemos rápido por WhatsApp</div>
@@ -191,10 +194,8 @@
           <span class="spark">✦</span>
           <span>Si es una urgencia, acude directamente. Estamos listos.</span>
         </div>
-      </div>
+      </aside>
     </div>
-
-    <div class="hero-glow" aria-hidden="true"></div>
   </main>
 
   <!-- Servicios -->
@@ -253,7 +254,7 @@
         <p>Un directorio médico confiable para atenderte como mereces.</p>
       </div>
 
-      <div class="chips">
+      <div class="chips" aria-label="Lista de especialidades">
         <span class="chip">Ginecología</span>
         <span class="chip">Cirugía General</span>
         <span class="chip">Anestesiología</span>
@@ -297,7 +298,7 @@
     </div>
   </section>
 
-  <!-- Instalaciones / confianza -->
+  <!-- Instalaciones -->
   <section id="instalaciones" class="section">
     <div class="container">
       <div class="section-head">
@@ -346,7 +347,7 @@
     <div class="container">
       <div class="section-head">
         <h2>Directorio médico</h2>
-        <p>Un panel elegante para mostrar doctores. (Aquí lo conectamos después a tu módulo real.)</p>
+        <p>Un panel elegante para mostrar doctores. (Luego lo conectamos a tu módulo real.)</p>
       </div>
 
       <div class="doctors">
@@ -382,7 +383,7 @@
       </div>
 
       <div class="hint">
-        <b>Pro tip:</b> cuando quieras, te conecto esto a una tabla `Doctores` en tu Flask + Admin para alta/baja.
+        <b>Pro tip:</b> cuando quieras, te conecto esto a una tabla <code>Doctores</code> en Flask + Admin para alta/baja.
       </div>
     </div>
   </section>
@@ -397,23 +398,17 @@
 
       <div class="quotes">
         <figure class="quote">
-          <blockquote>
-            “Me explicaron todo con claridad. Se siente un hospital con orden y corazón.”
-          </blockquote>
+          <blockquote>“Me explicaron todo con claridad. Se siente un hospital con orden y corazón.”</blockquote>
           <figcaption>Paciente • Atención en urgencias</figcaption>
         </figure>
 
         <figure class="quote">
-          <blockquote>
-            “Instalaciones limpias, buen trato, y un seguimiento que da confianza.”
-          </blockquote>
+          <blockquote>“Instalaciones limpias, buen trato, y un seguimiento que da confianza.”</blockquote>
           <figcaption>Familiar • Hospitalización</figcaption>
         </figure>
 
         <figure class="quote">
-          <blockquote>
-            “Rápidos para orientar por WhatsApp. Eso ya es otro nivel.”
-          </blockquote>
+          <blockquote>“Rápidos para orientar por WhatsApp. Eso ya es otro nivel.”</blockquote>
           <figcaption>Paciente • Cita programada</figcaption>
         </figure>
       </div>
@@ -429,6 +424,7 @@
       </div>
 
       <div class="contact">
+        <!-- Card contacto -->
         <div class="contact-card">
           <h3>Hospital Médica Vida</h3>
 
@@ -436,7 +432,7 @@
             <div class="contact-ico">📍</div>
             <div>
               <div class="contact-label">Ubicación</div>
-              <div class="contact-val">León, Guanajuato (edita aquí tu dirección exacta)</div>
+              <div class="contact-val">España 507, Moderna, 37328 León de los Aldama, Gto.</div>
             </div>
           </div>
 
@@ -470,19 +466,47 @@
           </div>
         </div>
 
+        <!-- Map card (bien estructurada y embebido correcto) -->
         <div class="map-card">
           <div class="map-head">
-            <div class="map-title">Mapa</div>
-            <div class="map-sub">Pega aquí tu iframe de Google Maps</div>
+            <div class="map-title">Ubicación</div>
+            <div class="map-sub">España 507, Col. Moderna • León, Guanajuato</div>
           </div>
 
-          <!-- Reemplaza este placeholder con tu iframe -->
-          <div class="map-placeholder">
-            <div class="map-icon">🗺️</div>
+          <div class="map-card">
             <div class="map-text">
-              <b>Placeholder de mapa</b><br>
-              Cuando me pases la dirección exacta, te pongo el iframe listo.
+              <b>Dirección</b><br>
+              España #507, Col. Moderna<br>
+              León, Guanajuato
             </div>
+          
+            <a
+              href="https://share.google/CqITWFaTQu7JxlkuP"
+              target="_blank"
+              rel="noopener"
+              class="map-link"
+            >
+              Ver en Google Maps
+            </a>
+          
+            <div class="full-map">
+              <iframe
+                src="https://www.google.com/maps?q=España%20507%20Col%20Moderna%20León%20Guanajuato&output=embed"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade">
+              </iframe>
+            </div>
+          </div>
+          
+
+          <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a class="btn btn-ghost" target="_blank" rel="noopener" href="https://share.google/CqITWFaTQu7JxlkuP">
+              Ver en Google Maps
+            </a>
+            <a class="btn btn-primary" target="_blank" rel="noopener"
+               href="https://wa.me/524777181921?text=Hola%20Hospital%20M%C3%A9dica%20Vida.%20Estoy%20en%20camino.%20%C2%BFMe%20pueden%20orientar%20para%20llegar%3F">
+              Voy en camino
+            </a>
           </div>
         </div>
       </div>
